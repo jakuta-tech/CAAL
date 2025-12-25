@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![LiveKit](https://img.shields.io/badge/LiveKit-Agents-purple.svg)](https://docs.livekit.io/agents/)
 
-**Voice assistant with n8n workflow integrations.**
+**Local voice assistant with auto-discovered n8n workflows exposed as tools via MCP**
 
 Built on [LiveKit Agents](https://docs.livekit.io/agents/) with fully local STT/TTS/LLM using [Speaches](https://github.com/speaches-ai/speaches) (Faster-Whisper STT), [Kokoro](https://github.com/remsky/Kokoro-FastAPI) (TTS), and [Ollama](https://ollama.ai/).
 
@@ -198,7 +198,7 @@ https://your-machine.tailnet.ts.net
 | `WHISPER_MODEL` | Faster-Whisper model | `Systran/faster-whisper-medium` |
 | `TTS_VOICE` | Kokoro voice name | `am_puck` |
 | `OLLAMA_HOST` | Ollama server URL | `http://localhost:11434` |
-| `OLLAMA_MODEL` | LLM model name | `qwen3:8b` |
+| `OLLAMA_MODEL` | LLM model name | `ministral-3:8b` |
 | `OLLAMA_THINK` | Enable thinking mode (slower) | `false` |
 | `PORCUPINE_ACCESS_KEY` | Picovoice key for wake word | - |
 
