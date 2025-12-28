@@ -54,7 +54,7 @@ from caal.integrations import (
     WebSearchTools,
     discover_n8n_workflows,
 )
-from caal.llm import ollama_llm_node
+from caal.llm import ollama_llm_node, ToolDataCache
 from caal.utils.formatting import (
     format_date_speech_friendly,
     format_time_speech_friendly,
@@ -93,6 +93,9 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:8b")
 OLLAMA_THINK = os.getenv("OLLAMA_THINK", "false").lower() == "true"
 OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.7"))
 OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
+OLLAMA_MAX_TURNS = int(os.getenv("OLLAMA_MAX_TURNS", "20"))
+
+TOOL_CACHE_SIZE = int(os.getenv("TOOL_CACHE_SIZE", "3"))
 
 TIMEZONE_ID = os.getenv("TIMEZONE", "America/Los_Angeles")
 TIMEZONE_DISPLAY = os.getenv("TIMEZONE_DISPLAY", "Pacific Time")
@@ -138,6 +141,8 @@ class VoiceAssistant(WebSearchTools, Agent):
         n8n_workflow_name_map: dict[str, str] | None = None,
         n8n_base_url: str | None = None,
         on_tool_status: ToolStatusCallback | None = None,
+        tool_cache_size: int = 3,
+        max_turns: int = 20,
     ) -> None:
         super().__init__(
             instructions=load_prompt(),
@@ -153,6 +158,10 @@ class VoiceAssistant(WebSearchTools, Agent):
         # Callback for publishing tool status to frontend
         self._on_tool_status = on_tool_status
 
+        # Context management: tool data cache and sliding window
+        self._tool_data_cache = ToolDataCache(max_entries=tool_cache_size)
+        self._max_turns = max_turns
+
     async def llm_node(self, chat_ctx, tools, model_settings):
         """Custom LLM node using Ollama with think parameter for low latency."""
         # Access config from OllamaLLM instance via self.llm
@@ -163,6 +172,8 @@ class VoiceAssistant(WebSearchTools, Agent):
             think=self.llm.think,
             temperature=self.llm.temperature,
             num_ctx=self.llm.num_ctx,
+            tool_data_cache=self._tool_data_cache,
+            max_turns=self._max_turns,
         ):
             yield chunk
 
@@ -301,6 +312,8 @@ async def entrypoint(ctx: agents.JobContext) -> None:
         n8n_workflow_name_map=n8n_workflow_name_map,
         n8n_base_url=n8n_base_url,
         on_tool_status=_publish_tool_status,
+        tool_cache_size=TOOL_CACHE_SIZE,
+        max_turns=OLLAMA_MAX_TURNS,
     )
 
     # Start session

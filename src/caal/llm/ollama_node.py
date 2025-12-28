@@ -19,7 +19,9 @@ Usage:
 """
 
 import inspect
+import json
 import logging
+import time
 from collections.abc import AsyncIterable
 from typing import Any
 
@@ -29,6 +31,39 @@ from ..utils.formatting import strip_markdown_for_tts
 from ..integrations.n8n import execute_n8n_workflow
 
 logger = logging.getLogger(__name__)
+
+
+class ToolDataCache:
+    """Caches recent tool response data for context injection.
+
+    Tool responses often contain structured data (IDs, arrays) that the LLM
+    needs for follow-up calls. This cache preserves that data separately
+    from chat history and injects it into context on each LLM call.
+    """
+
+    def __init__(self, max_entries: int = 3):
+        self.max_entries = max_entries
+        self._cache: list[dict] = []
+
+    def add(self, tool_name: str, data: Any) -> None:
+        """Add tool response data to cache."""
+        entry = {"tool": tool_name, "data": data, "timestamp": time.time()}
+        self._cache.append(entry)
+        if len(self._cache) > self.max_entries:
+            self._cache.pop(0)  # Remove oldest
+
+    def get_context_message(self) -> str | None:
+        """Format cached data as context string for LLM injection."""
+        if not self._cache:
+            return None
+        parts = ["Recent tool response data for reference:"]
+        for entry in self._cache:
+            parts.append(f"\n{entry['tool']}: {json.dumps(entry['data'])}")
+        return "\n".join(parts)
+
+    def clear(self) -> None:
+        """Clear the cache."""
+        self._cache.clear()
 
 
 class OllamaLLMNode:
@@ -67,6 +102,8 @@ async def ollama_llm_node(
     top_p: float = 0.8,
     top_k: int = 20,
     num_ctx: int = 8192,
+    tool_data_cache: ToolDataCache | None = None,
+    max_turns: int = 20,
 ) -> AsyncIterable[str]:
     """Custom LLM node using Ollama directly with think parameter support.
 
@@ -81,6 +118,8 @@ async def ollama_llm_node(
         top_p: Nucleus sampling threshold
         top_k: Top-k sampling limit
         num_ctx: Context window size
+        tool_data_cache: Cache for structured tool response data
+        max_turns: Max conversation turns to keep in sliding window
 
     Yields:
         String chunks for TTS output
@@ -99,8 +138,12 @@ async def ollama_llm_node(
     }
 
     try:
-        # Build messages from chat context
-        messages = _build_messages_from_context(chat_ctx)
+        # Build messages from chat context with sliding window
+        messages = _build_messages_from_context(
+            chat_ctx,
+            tool_data_cache=tool_data_cache,
+            max_turns=max_turns,
+        )
 
         # Discover tools from agent and MCP servers
         ollama_tools = await _discover_tools(agent)
@@ -131,9 +174,10 @@ async def ollama_llm_node(
                         import asyncio
                         asyncio.create_task(agent._on_tool_status(True, tool_names, tool_params))
 
-                    # Execute tools and get results
+                    # Execute tools and get results (cache structured data)
                     messages = await _execute_tool_calls(
-                        agent, messages, tool_calls, response.message
+                        agent, messages, tool_calls, response.message,
+                        tool_data_cache=tool_data_cache,
                     )
 
                     # Stream follow-up response with tool results
@@ -185,21 +229,38 @@ async def ollama_llm_node(
         yield f"I encountered an error: {e}"
 
 
-def _build_messages_from_context(chat_ctx) -> list[dict]:
-    """Build Ollama messages from LiveKit chat context."""
-    messages = []
+def _build_messages_from_context(
+    chat_ctx,
+    tool_data_cache: ToolDataCache | None = None,
+    max_turns: int = 20,
+) -> list[dict]:
+    """Build Ollama messages with sliding window and tool data context.
+
+    Message order:
+    1. System prompt (always first, never trimmed)
+    2. Tool data context (injected from cache)
+    3. Chat history (sliding window applied)
+
+    Args:
+        chat_ctx: LiveKit chat context
+        tool_data_cache: Cache of recent tool response data
+        max_turns: Max conversation turns to keep (1 turn = user + assistant)
+    """
+    system_prompt = None
+    chat_messages = []
 
     for item in chat_ctx.items:
         item_type = type(item).__name__
 
         if item_type == "ChatMessage":
-            messages.append({
-                "role": item.role,
-                "content": item.text_content,
-            })
+            msg = {"role": item.role, "content": item.text_content}
+            if item.role == "system":
+                system_prompt = msg
+            else:
+                chat_messages.append(msg)
         elif item_type == "FunctionCall":
             try:
-                messages.append({
+                chat_messages.append({
                     "role": "assistant",
                     "content": "",
                     "tool_calls": [{
@@ -214,7 +275,7 @@ def _build_messages_from_context(chat_ctx) -> list[dict]:
                 pass
         elif item_type == "FunctionCallOutput":
             try:
-                messages.append({
+                chat_messages.append({
                     "role": "tool",
                     "content": str(item.content),
                     "tool_call_id": item.tool_call_id,
@@ -222,6 +283,28 @@ def _build_messages_from_context(chat_ctx) -> list[dict]:
             except AttributeError:
                 pass
 
+    # Build final message list
+    messages = []
+
+    # 1. System prompt always first
+    if system_prompt:
+        messages.append(system_prompt)
+
+    # 2. Inject tool data context
+    if tool_data_cache:
+        context = tool_data_cache.get_context_message()
+        if context:
+            messages.append({"role": "system", "content": context})
+
+    # 3. Apply sliding window to chat history
+    # max_turns * 2 accounts for user + assistant pairs
+    max_messages = max_turns * 2
+    if len(chat_messages) > max_messages:
+        trimmed = len(chat_messages) - max_messages
+        chat_messages = chat_messages[-max_messages:]
+        logger.debug(f"Sliding window: trimmed {trimmed} old messages")
+
+    messages.extend(chat_messages)
     return messages
 
 
@@ -339,8 +422,17 @@ async def _execute_tool_calls(
     messages: list[dict],
     tool_calls: list,
     response_message: Any,
+    tool_data_cache: ToolDataCache | None = None,
 ) -> list[dict]:
-    """Execute tool calls and append results to messages."""
+    """Execute tool calls and append results to messages.
+
+    Args:
+        agent: The agent instance
+        messages: Current message list to append to
+        tool_calls: List of tool calls from LLM response
+        response_message: The original LLM response message
+        tool_data_cache: Optional cache to store structured tool response data
+    """
 
     # Add assistant message with tool calls
     tool_call_message = {
@@ -368,6 +460,14 @@ async def _execute_tool_calls(
 
         try:
             tool_result = await _execute_single_tool(agent, tool_name, arguments)
+
+            # Cache structured data if present
+            if tool_data_cache and isinstance(tool_result, dict):
+                # Look for common data fields, otherwise cache the whole result
+                data = tool_result.get("data") or tool_result.get("results") or tool_result
+                tool_data_cache.add(tool_name, data)
+                logger.debug(f"Cached tool data for {tool_name}")
+
             messages.append({
                 "role": "tool",
                 "content": str(tool_result),
