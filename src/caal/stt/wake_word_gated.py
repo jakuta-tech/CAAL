@@ -93,6 +93,7 @@ class WakeWordGatedSTT(STT):
         self._on_wake_detected = on_wake_detected
         self._on_state_changed = on_state_changed
         self._oww: OWWModel | None = None
+        self._active_stream: WakeWordGatedStream | None = None
 
     @property
     def model(self) -> str:
@@ -132,7 +133,7 @@ class WakeWordGatedSTT(STT):
         language: NotGivenOr[str] = NOT_GIVEN,
         conn_options: APIConnectOptions = DEFAULT_API_CONNECT_OPTIONS,
     ) -> RecognizeStream:
-        return WakeWordGatedStream(
+        stream = WakeWordGatedStream(
             stt=self,
             inner_stt=self._inner,
             oww=self._ensure_model(),
@@ -143,6 +144,13 @@ class WakeWordGatedSTT(STT):
             language=language,
             conn_options=conn_options,
         )
+        self._active_stream = stream
+        return stream
+
+    def set_agent_busy(self, busy: bool) -> None:
+        """Set agent busy state - pauses silence timer while busy, resets when done."""
+        if self._active_stream:
+            self._active_stream.set_agent_busy(busy)
 
     async def aclose(self) -> None:
         await self._inner.aclose()
@@ -195,6 +203,17 @@ class WakeWordGatedStream(RecognizeStream):
         self._oww_buffer: list[np.ndarray] = []  # Buffer for wake word detection
         self._last_speech_time: float = 0.0
         self._inner_stream: RecognizeStream | None = None
+        self._agent_busy: bool = False  # True while agent is thinking/speaking
+
+    def set_agent_busy(self, busy: bool) -> None:
+        """Set agent busy state - pauses silence timer while busy, resets when done."""
+        was_busy = self._agent_busy
+        self._agent_busy = busy
+
+        # When agent finishes (busy -> not busy), start fresh follow-up window
+        if was_busy and not busy:
+            self._last_speech_time = time.time()
+            logger.info("Agent done, follow-up window started")
 
     async def _set_state(self, state: WakeWordState) -> None:
         """Update state and notify callback."""
@@ -259,7 +278,8 @@ class WakeWordGatedStream(RecognizeStream):
             while True:
                 await asyncio.sleep(0.5)  # Check every 500ms
 
-                if self._state == WakeWordState.ACTIVE:
+                # Only timeout if active and agent is not busy
+                if self._state == WakeWordState.ACTIVE and not self._agent_busy:
                     elapsed = time.time() - self._last_speech_time
                     if elapsed >= self._silence_timeout:
                         logger.info(

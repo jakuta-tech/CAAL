@@ -334,6 +334,7 @@ async def entrypoint(ctx: agents.JobContext) -> None:
             voice=runtime["tts_voice"],
         ),
         vad=silero.VAD.load(),
+        allow_interruptions=False,  # Prevent background noise from interrupting agent
     )
     logger.info(f"  Session STT: {type(session.stt).__name__}")
 
@@ -359,6 +360,10 @@ async def entrypoint(ctx: agents.JobContext) -> None:
             latency_ms = (time.perf_counter() - _transcription_time) * 1000
             logger.info(f"ROUND-TRIP LATENCY: {latency_ms:.0f}ms (LLM + TTS)")
             _transcription_time = None
+
+        # Notify wake word STT of agent state for silence timer management
+        if isinstance(stt_instance, WakeWordGatedSTT):
+            stt_instance.set_agent_busy(ev.new_state in ("thinking", "speaking"))
 
     async def _publish_tool_status(
         tool_used: bool,
