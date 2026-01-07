@@ -43,7 +43,7 @@ load_dotenv(os.path.join(_script_dir, ".env"))
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, mcp
-from livekit.plugins import silero, openai
+from livekit.plugins import silero, openai, groq as groq_plugin
 
 from caal import CAALLLM
 from caal.integrations import (
@@ -65,6 +65,7 @@ logger.setLevel(logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("openai._base_client").setLevel(logging.WARNING)
+logging.getLogger("groq._base_client").setLevel(logging.WARNING)  # Suppress Groq HTTP request/response spam
 logging.getLogger("mcp").setLevel(logging.WARNING)  # MCP client SSE/JSON-RPC spam
 logging.getLogger("livekit").setLevel(logging.WARNING)  # LiveKit internal logs
 logging.getLogger("livekit_api").setLevel(logging.WARNING)  # Rust bridge logs
@@ -94,20 +95,25 @@ def get_runtime_settings() -> dict:
 
     These can be changed via the settings UI without rebuilding.
     Falls back to .env values for backwards compatibility.
+
+    Priority: settings.json (explicit) > .env > DEFAULT_SETTINGS
     """
     settings = settings_module.load_settings()
+    user_settings = settings_module.load_user_settings()  # Only explicitly set values
 
     return {
         "tts_voice": settings.get("tts_voice") or os.getenv("TTS_VOICE", "am_puck"),
-        # LLM Provider settings
-        "llm_provider": settings.get("llm_provider") or os.getenv("LLM_PROVIDER", "ollama"),
+        # STT Provider settings
+        "stt_provider": user_settings.get("stt_provider") or os.getenv("STT_PROVIDER", "speaches"),
+        # LLM Provider settings - .env overrides default, user setting overrides .env
+        "llm_provider": user_settings.get("llm_provider") or os.getenv("LLM_PROVIDER", "ollama"),
         "temperature": settings.get("temperature", float(os.getenv("OLLAMA_TEMPERATURE", "0.7"))),
         # Ollama settings
-        "model": settings.get("model") or os.getenv("OLLAMA_MODEL", "ministral-3:8b"),
+        "model": user_settings.get("model") or os.getenv("OLLAMA_MODEL", "ministral-3:8b"),
         "num_ctx": settings.get("num_ctx", int(os.getenv("OLLAMA_NUM_CTX", "8192"))),
         "think": OLLAMA_THINK,  # Only applies to Ollama
         # Groq settings
-        "groq_model": settings.get("groq_model") or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        "groq_model": user_settings.get("groq_model") or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
         # Shared settings
         "max_turns": settings.get("max_turns", int(os.getenv("OLLAMA_MAX_TURNS", "20"))),
         "tool_cache_size": settings.get("tool_cache_size", int(os.getenv("TOOL_CACHE_SIZE", "3"))),
@@ -241,7 +247,10 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     logger.info("=" * 60)
     logger.info("STARTING VOICE AGENT")
     logger.info("=" * 60)
-    logger.info(f"  STT: {SPEACHES_URL} ({WHISPER_MODEL})")
+    if runtime["stt_provider"] == "groq":
+        logger.info("  STT: Groq (whisper-large-v3-turbo)")
+    else:
+        logger.info(f"  STT: {SPEACHES_URL} ({WHISPER_MODEL})")
     logger.info(f"  TTS: {KOKORO_URL} ({runtime['tts_voice']})")
     if runtime["llm_provider"] == "ollama":
         logger.info(
@@ -254,12 +263,18 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     logger.info(f"  MCP: {list(mcp_servers.keys()) or 'None'}")
     logger.info("=" * 60)
 
-    # Build STT - optionally wrapped with wake word detection
-    base_stt = openai.STT(
-        base_url=f"{SPEACHES_URL}/v1",
-        api_key="not-needed",  # Speaches doesn't require auth
-        model=WHISPER_MODEL,
-    )
+    # Build STT - Speaches (local) or Groq (cloud)
+    if runtime["stt_provider"] == "groq":
+        base_stt = groq_plugin.STT(
+            model="whisper-large-v3-turbo",
+            language="en",
+        )
+    else:
+        base_stt = openai.STT(
+            base_url=f"{SPEACHES_URL}/v1",
+            api_key="not-needed",  # Speaches doesn't require auth
+            model=WHISPER_MODEL,
+        )
 
     # Load wake word settings
     all_settings = settings_module.load_settings()

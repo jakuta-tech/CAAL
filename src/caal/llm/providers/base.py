@@ -153,15 +153,19 @@ class LLMProvider(ABC):
         Returns:
             Message dict for assistant with tool calls
         """
+        import json
+
         return {
             "role": "assistant",
             "content": content or "",
             "tool_calls": [
                 {
                     "id": tc.id,
+                    "type": "function",
                     "function": {
                         "name": tc.name,
-                        "arguments": tc.arguments,
+                        # Arguments must be JSON string for Groq compatibility
+                        "arguments": json.dumps(tc.arguments) if isinstance(tc.arguments, dict) else str(tc.arguments),
                     },
                 }
                 for tc in tool_calls

@@ -42,6 +42,8 @@ DEFAULT_SETTINGS = {
         "Yo!",
         "What's up?",
     ],
+    # STT Provider settings
+    "stt_provider": "speaches",  # "speaches" or "groq"
     # LLM Provider settings
     "llm_provider": "ollama",  # "ollama" or "groq"
     "temperature": 0.7,
@@ -94,6 +96,22 @@ def load_settings() -> dict:
 
     _settings_cache = settings
     return settings
+
+
+def load_user_settings() -> dict:
+    """Load only user-specified settings from JSON file (no defaults).
+
+    Returns:
+        Dict with only keys explicitly set by the user in settings.json.
+        Empty dict if file doesn't exist or is empty.
+    """
+    if SETTINGS_PATH.exists():
+        try:
+            with open(SETTINGS_PATH) as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to load user settings from {SETTINGS_PATH}: {e}")
+    return {}
 
 
 def save_settings(settings: dict) -> None:

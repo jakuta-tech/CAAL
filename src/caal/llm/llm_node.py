@@ -202,6 +202,9 @@ def _build_messages_from_context(
                 chat_messages.append(msg)
         elif item_type == "FunctionCall":
             try:
+                # Arguments must be JSON string for Groq compatibility
+                args = getattr(item, "arguments", {}) or {}
+                args_str = json.dumps(args) if isinstance(args, dict) else str(args)
                 chat_messages.append(
                     {
                         "role": "assistant",
@@ -209,9 +212,10 @@ def _build_messages_from_context(
                         "tool_calls": [
                             {
                                 "id": item.id,
+                                "type": "function",
                                 "function": {
                                     "name": item.name,
-                                    "arguments": getattr(item, "arguments", {}) or {},
+                                    "arguments": args_str,
                                 },
                             }
                         ],
@@ -426,9 +430,14 @@ async def _execute_tool_calls(
                 tool_data_cache.add(tool_name, data)
                 logger.debug(f"Cached tool data for {tool_name}")
 
-            # Format tool result using provider method
+            # Format tool result - preserve JSON structure for LLM
+            if isinstance(tool_result, dict):
+                result_content = json.dumps(tool_result)
+            else:
+                result_content = str(tool_result)
+
             result_message = provider.format_tool_result(
-                content=str(tool_result),
+                content=result_content,
                 tool_call_id=tool_call.id,
                 tool_name=tool_name,
             )

@@ -96,6 +96,10 @@ class GroqProvider(LLMProvider):
             "stream": False,
         }
 
+        # Disable thinking for Qwen3 models (reduces latency)
+        if "qwen" in self._model.lower():
+            request_kwargs["reasoning_effort"] = "none"
+
         if tools:
             request_kwargs["tools"] = tools
             request_kwargs["tool_choice"] = "auto"
@@ -135,13 +139,19 @@ class GroqProvider(LLMProvider):
         Yields:
             String chunks of response content
         """
-        stream = await self._client.chat.completions.create(
-            model=self._model,
-            messages=messages,
-            temperature=self._temperature,
-            max_tokens=self._max_tokens,
-            stream=True,
-        )
+        request_kwargs: dict[str, Any] = {
+            "model": self._model,
+            "messages": messages,
+            "temperature": self._temperature,
+            "max_tokens": self._max_tokens,
+            "stream": True,
+        }
+
+        # Disable thinking for Qwen3 models (reduces latency)
+        if "qwen" in self._model.lower():
+            request_kwargs["reasoning_effort"] = "none"
+
+        stream = await self._client.chat.completions.create(**request_kwargs)
 
         async for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:

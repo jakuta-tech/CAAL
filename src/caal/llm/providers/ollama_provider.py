@@ -185,3 +185,35 @@ class OllamaProvider(LLMProvider):
 
     # parse_tool_arguments: Use default (Ollama returns dict)
     # format_tool_result: Use default (no name field needed)
+
+    def format_tool_call_message(
+        self,
+        content: str | None,
+        tool_calls: list[ToolCall],
+    ) -> dict[str, Any]:
+        """Format assistant message containing tool calls for Ollama.
+
+        Ollama requires arguments as dict, not JSON string.
+
+        Args:
+            content: Optional assistant content
+            tool_calls: List of tool calls to include
+
+        Returns:
+            Message dict for assistant with tool calls
+        """
+        return {
+            "role": "assistant",
+            "content": content or "",
+            "tool_calls": [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.name,
+                        "arguments": tc.arguments,  # Ollama needs dict, not JSON string
+                    },
+                }
+                for tc in tool_calls
+            ],
+        }
