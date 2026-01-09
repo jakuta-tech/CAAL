@@ -612,58 +612,72 @@ def preload_models():
     Ensures models are ready before first user connection, avoiding
     delays on first request (especially important on HDDs).
 
+    Skips preloading entirely if wizard not complete (no provider selected yet).
+    Skips individual preloads when using cloud providers (Groq).
     Note: Kokoro (remsky/kokoro-fastapi) preloads its own models at startup.
     """
-    speaches_url = os.getenv("SPEACHES_URL", "http://speaches:8000")
-    whisper_model = os.getenv("WHISPER_MODEL", "Systran/faster-whisper-medium")
-    ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-    ollama_model = os.getenv("OLLAMA_MODEL", "ministral-3:8b")
-    ollama_num_ctx = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
+    settings = settings_module.load_settings()
+
+    # Skip all preloading if wizard not complete
+    if not settings.get("first_launch_completed", False):
+        logger.info("Skipping model preload (wizard not complete)")
+        return
+
+    stt_provider = settings.get("stt_provider", "speaches")
+    llm_provider = settings.get("llm_provider", "ollama")
 
     logger.info("Preloading models...")
 
-    # Download Whisper STT model
-    # Speaches uses POST /v1/models/{model_id}, mlx-audio uses POST /v1/models?model_name=
-    try:
-        logger.info(f"  Loading STT: {whisper_model}")
-        # Try Speaches API format first (path parameter)
-        response = requests.post(
-            f"{speaches_url}/v1/models/{whisper_model}",
-            timeout=300
-        )
-        if response.status_code == 404:
-            # Fall back to mlx-audio API format (query parameter)
+    # Download Whisper STT model (skip if using Groq cloud STT)
+    if stt_provider == "groq":
+        logger.info("  Skipping STT preload (using Groq)")
+    else:
+        speaches_url = os.getenv("SPEACHES_URL", "http://speaches:8000")
+        whisper_model = os.getenv("WHISPER_MODEL", "Systran/faster-whisper-medium")
+        try:
+            logger.info(f"  Loading STT: {whisper_model}")
             response = requests.post(
-                f"{speaches_url}/v1/models?model_name={whisper_model}",
+                f"{speaches_url}/v1/models/{whisper_model}",
                 timeout=300
             )
-        if response.status_code == 200:
-            logger.info("  ✓ STT ready")
-        else:
-            logger.warning(f"  STT model download returned {response.status_code}")
-    except Exception as e:
-        logger.warning(f"  Failed to preload STT model: {e}")
+            if response.status_code == 404:
+                response = requests.post(
+                    f"{speaches_url}/v1/models?model_name={whisper_model}",
+                    timeout=300
+                )
+            if response.status_code == 200:
+                logger.info("  ✓ STT ready")
+            else:
+                logger.warning(f"  STT model download returned {response.status_code}")
+        except Exception as e:
+            logger.warning(f"  Failed to preload STT model: {e}")
 
-    # Warm up Ollama LLM with correct num_ctx (loads model into VRAM)
-    try:
-        logger.info(f"  Loading LLM: {ollama_model} (num_ctx={ollama_num_ctx})")
-        response = requests.post(
-            f"{ollama_host}/api/generate",
-            json={
-                "model": ollama_model,
-                "prompt": "hi",
-                "stream": False,
-                "keep_alive": -1,
-                "options": {"num_ctx": ollama_num_ctx}
-            },
-            timeout=180
-        )
-        if response.status_code == 200:
-            logger.info("  ✓ LLM ready")
-        else:
-            logger.warning(f"  LLM warmup returned {response.status_code}")
-    except Exception as e:
-        logger.warning(f"  Failed to preload LLM: {e}")
+    # Warm up Ollama LLM (skip if using Groq cloud LLM)
+    if llm_provider == "groq":
+        logger.info("  Skipping LLM preload (using Groq)")
+    else:
+        ollama_host = settings.get("ollama_host") or os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        ollama_model = settings.get("ollama_model") or os.getenv("OLLAMA_MODEL", "ministral-3:8b")
+        ollama_num_ctx = settings.get("num_ctx", int(os.getenv("OLLAMA_NUM_CTX", "8192")))
+        try:
+            logger.info(f"  Loading LLM: {ollama_model} (num_ctx={ollama_num_ctx})")
+            response = requests.post(
+                f"{ollama_host}/api/generate",
+                json={
+                    "model": ollama_model,
+                    "prompt": "hi",
+                    "stream": False,
+                    "keep_alive": -1,
+                    "options": {"num_ctx": ollama_num_ctx}
+                },
+                timeout=180
+            )
+            if response.status_code == 200:
+                logger.info("  ✓ LLM ready")
+            else:
+                logger.warning(f"  LLM warmup returned {response.status_code}")
+        except Exception as e:
+            logger.warning(f"  Failed to preload LLM: {e}")
 
 
 # =============================================================================

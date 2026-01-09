@@ -749,6 +749,8 @@ class SetupCompleteRequest(BaseModel):
     groq_model: str | None = None
     # TTS provider
     tts_provider: str = "kokoro"  # "kokoro" | "piper"
+    tts_voice_kokoro: str | None = None
+    tts_voice_piper: str | None = None
     # Integrations (optional)
     hass_enabled: bool = False
     hass_host: str | None = None
@@ -857,8 +859,12 @@ async def complete_setup(req: SetupCompleteRequest) -> SetupCompleteResponse:
             if req.n8n_token:
                 current["n8n_token"] = req.n8n_token
 
-        # TTS provider (placeholder for now - piper not yet implemented)
+        # TTS provider and voice settings
         current["tts_provider"] = req.tts_provider
+        if req.tts_voice_kokoro:
+            current["tts_voice_kokoro"] = req.tts_voice_kokoro
+        if req.tts_voice_piper:
+            current["tts_voice_piper"] = req.tts_voice_piper
 
         # Mark setup as complete
         current["first_launch_completed"] = True
