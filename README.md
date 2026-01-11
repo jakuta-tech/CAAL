@@ -33,7 +33,7 @@ nano .env  # Set CAAL_HOST_IP to your server's LAN IP
 docker compose up -d
 
 # CPU-only mode (Groq + Piper) - no GPU required
-docker compose up -d --scale kokoro=0
+docker compose -f docker-compose.cpu.yaml up -d
 ```
 
 Open `http://YOUR_SERVER_IP:3000` and complete the setup wizard.
@@ -41,7 +41,7 @@ Open `http://YOUR_SERVER_IP:3000` and complete the setup wizard.
 | Mode | Hardware | Command |
 |------|----------|---------|
 | **GPU** | Linux + NVIDIA GPU | `docker compose up -d` |
-| **CPU-only** | Any Docker host | `docker compose up -d --scale kokoro=0` |
+| **CPU-only** | Any Docker host | `docker compose -f docker-compose.cpu.yaml up -d` |
 | **Apple Silicon** | M1/M2/M3/M4 Mac | [docs/APPLE-SILICON.md](docs/APPLE-SILICON.md) |
 | **Distributed** | GPU Server + Mac | [docs/DISTRIBUTED-DEPLOYMENT.md](docs/DISTRIBUTED-DEPLOYMENT.md) |
 
@@ -76,7 +76,12 @@ The setup wizard will guide you through LLM (Ollama), TTS, and integration confi
 Run CAAL without a GPU using Groq for LLM/STT and Piper (CPU) for TTS.
 
 ```bash
-docker compose up -d --scale kokoro=0
+docker compose -f docker-compose.cpu.yaml up -d
+```
+
+For HTTPS:
+```bash
+docker compose -f docker-compose.cpu.yaml --profile https up -d
 ```
 
 In the setup wizard:

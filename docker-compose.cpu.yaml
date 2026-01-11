@@ -1,26 +1,19 @@
-# CAAL Voice Framework - Apple Silicon (M1/M2/M3/M4)
+# CAAL Voice Framework - CPU Only (No GPU Required)
 # ==================================================
 #
-# This compose file is for Apple Silicon Macs. It excludes GPU containers
-# (Speaches, Kokoro) since they require NVIDIA CUDA.
+# This compose file runs CAAL without GPU containers.
+# Uses Speaches CPU image for STT and Piper for TTS.
 #
 # Prerequisites:
-#   1. Install mlx-audio for STT/TTS:
-#      pip install mlx-audio
-#
-#   2. Start mlx-audio server (runs on port 8000):
-#      python -m mlx_audio.server --port 8000
-#
-#   3. Install Ollama for LLM (native MPS support):
-#      brew install ollama
-#      ollama pull ministral-3:8b
+#   - Groq API key (free tier available): https://console.groq.com/
 #
 # Usage:
-#   docker compose -f docker-compose.apple.yaml up -d
+#   docker compose -f docker-compose.cpu.yaml up -d
 #   Access: http://localhost:3000
 #
-# With HTTPS (Tailscale):
-#   docker compose -f docker-compose.apple.yaml --profile https up -d
+# With HTTPS:
+#   docker compose -f docker-compose.cpu.yaml --profile https up -d
+#   Access: https://<CAAL_HOST_IP>:3443
 #
 # See .env.example for configuration options.
 
@@ -31,7 +24,6 @@ services:
   livekit:
     image: livekit/livekit-server:latest
     container_name: caal-livekit
-    platform: linux/arm64
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -71,41 +63,55 @@ services:
   # ===========================================================================
   # CAAL Agent - Voice Processing Pipeline
   # ===========================================================================
-  # Connects to mlx-audio running on host for STT/TTS
   agent:
     build:
       context: .
       dockerfile: Dockerfile
-      platforms:
-        - linux/arm64
+      labels:
+        org.opencontainers.image.source: https://github.com/CoreWorxLab/caal
+        org.opencontainers.image.description: CAAL Voice Assistant Agent
     container_name: caal-agent
-    platform: linux/arm64
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "8889:8889"  # Webhook server
+      - "8889:8889"  # Webhook server for announcements and tool reload
     env_file:
       - ./.env
     environment:
       - LIVEKIT_URL=ws://livekit:7880
-      # Point to mlx-audio (single service for STT + TTS)
-      - SPEACHES_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8001}
-      - KOKORO_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8001}
-      # MLX models and voice - override in .env if needed
-      - WHISPER_MODEL=${WHISPER_MODEL:-mlx-community/whisper-medium-mlx}
-      - TTS_MODEL=${TTS_MODEL:-prince-canuma/Kokoro-82M}
-      # mlx-audio Kokoro uses different voices than kokoro-fastapi
-      - TTS_VOICE=${TTS_VOICE:-af_heart}
+      - SPEACHES_URL=http://speaches:8000
     volumes:
       - caal-memory:/app/data
       - caal-config:/app/config  # Runtime config (settings.json, mcp_servers.json)
-      - ./prompt:/app/prompt
+      - ./prompt:/app/prompt  # Prompt files (custom.md is gitignored)
     networks:
       - caal-network
     depends_on:
       livekit:
         condition: service_healthy
+      speaches:
+        condition: service_healthy
     restart: unless-stopped
+
+  # ===========================================================================
+  # Speaches - STT (Faster-Whisper) + Piper TTS (CPU)
+  # ===========================================================================
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:0.9.0-rc.3-cpu
+    container_name: caal-speaches
+    ports:
+      - "${SPEACHES_PORT:-8000}:8000"
+    volumes:
+      - speaches-cache:/root/.cache/huggingface
+    restart: unless-stopped
+    networks:
+      - caal-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
   # ===========================================================================
   # Frontend - Next.js Web Interface
@@ -114,13 +120,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      platforms:
-        - linux/arm64
+      labels:
+        org.opencontainers.image.source: https://github.com/CoreWorxLab/caal
+        org.opencontainers.image.description: CAAL Voice Assistant Frontend
       args:
         - NEXT_PUBLIC_LIVEKIT_URL=${HTTPS_DOMAIN:+wss://${HTTPS_DOMAIN}:7443}
         - NEXT_PUBLIC_PORCUPINE_ACCESS_KEY=${PORCUPINE_ACCESS_KEY:-}
     container_name: caal-frontend
-    platform: linux/arm64
     ports:
       - "3000:3000"
     environment:
@@ -148,7 +154,6 @@ services:
   nginx:
     image: nginx:alpine
     container_name: caal-nginx
-    platform: linux/arm64
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -197,3 +202,5 @@ volumes:
     name: caal-memory
   caal-config:
     name: caal-config
+  speaches-cache:
+    name: caal-speaches-cache
