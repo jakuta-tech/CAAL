@@ -35,7 +35,17 @@ const SECRET_PATTERNS = [
   { name: 'Bearer token', regex: /bearer\s+[a-zA-Z0-9_-]{20,}/gi, type: 'tokens' },
   { name: 'OpenAI key', regex: /sk-[a-zA-Z0-9]{20,}/g, type: 'api_keys' },
   { name: 'GitHub PAT', regex: /ghp_[a-zA-Z0-9]{36}/g, type: 'tokens' },
+  { name: 'AWS Access Key', regex: /AKIA[0-9A-Z]{16}/g, type: 'api_keys' },
+  { name: 'Slack token', regex: /xox[baprs]-[0-9a-zA-Z]{10,}/g, type: 'tokens' },
+  { name: 'Private key', regex: /-----BEGIN\s+(RSA\s+|EC\s+|DSA\s+)?PRIVATE\s+KEY-----/gi, type: 'api_keys' },
   { name: 'Password', regex: /password\s*[:=]\s*["'][^"']+["']/gi, type: 'passwords' },
+] as const;
+
+// Expression patterns that reference secrets via n8n expressions
+const EXPRESSION_SECRET_PATTERNS = [
+  { name: 'Environment variable', regex: /\{\{.*\$env\.[A-Z_]*(?:KEY|TOKEN|SECRET|PASSWORD|API)[A-Z_]*.*\}\}/gi },
+  { name: 'JSON secret field', regex: /\{\{.*\$json\.(?:apiKey|api_key|token|secret|password).*\}\}/gi },
+  { name: 'Binary secret field', regex: /\{\{.*\$binary\.(?:key|token|secret).*\}\}/gi },
 ] as const;
 
 // URL pattern to detect hardcoded URLs
@@ -128,6 +138,23 @@ function detectSecrets(workflowStr: string): {
 }
 
 /**
+ * Detect expression secrets ({{ $env.SECRET }}, {{ $json.apiKey }})
+ */
+function detectExpressionSecrets(workflowStr: string): string[] {
+  const found: string[] = [];
+
+  for (const { name, regex } of EXPRESSION_SECRET_PATTERNS) {
+    regex.lastIndex = 0;
+    const matches = workflowStr.match(regex);
+    if (matches && matches.length > 0) {
+      found.push(`${name} (${matches.length} occurrence${matches.length > 1 ? 's' : ''})`);
+    }
+  }
+
+  return found;
+}
+
+/**
  * Detect hardcoded URLs in workflow
  */
 function detectUrls(workflowStr: string): string[] {
@@ -200,12 +227,22 @@ export function sanitizeWorkflow(workflow: WorkflowData): SanitizationResult {
   // 1. Detect secrets (BEFORE stripping)
   const workflowStr = JSON.stringify(workflow);
   const secrets = detectSecrets(workflowStr);
+  const expressionSecrets = detectExpressionSecrets(workflowStr);
 
-  // CRITICAL: Block if secrets found
+  // CRITICAL: Block if hardcoded secrets found
   if (secrets.found.length > 0) {
     throw new Error(
-      `Cannot submit workflow with secrets detected: ${secrets.found.join(', ')}. ` +
-        `Please remove secrets from your n8n workflow and export again.`
+      `Cannot submit workflow with hardcoded secrets: ${secrets.found.join(', ')}. ` +
+        `Please configure these as n8n Credentials in your workflow and re-export.`
+    );
+  }
+
+  // CRITICAL: Block if expression secrets found
+  if (expressionSecrets.length > 0) {
+    throw new Error(
+      `Cannot submit workflow with expression-based secrets: ${expressionSecrets.join(', ')}. ` +
+        `Expressions like {{ $env.API_KEY }} or {{ $json.password }} expose secrets. ` +
+        `Please use n8n Credentials instead.`
     );
   }
 
