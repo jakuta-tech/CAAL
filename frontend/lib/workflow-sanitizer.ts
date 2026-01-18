@@ -295,11 +295,20 @@ function parameterizeCredentials(workflow: WorkflowData): {
 export function sanitizeWorkflow(workflow: WorkflowData): SanitizationResult {
   const warnings: string[] = [];
 
-  // 1. Detect secrets (BEFORE stripping)
-  const workflowStr = JSON.stringify(workflow);
+  // 1. Create clean workflow copy FIRST - strip instance-specific fields
+  // This prevents detecting duplicates in activeVersion, meta, etc.
+  let sanitized: WorkflowData = {
+    name: workflow.name,
+    nodes: JSON.parse(JSON.stringify(workflow.nodes || [])),
+    connections: JSON.parse(JSON.stringify(workflow.connections || {})),
+    settings: JSON.parse(JSON.stringify(workflow.settings || {})),
+  };
+
+  // 2. Detect secrets on the clean workflow
+  const workflowStr = JSON.stringify(sanitized);
   const secrets = detectSecrets(workflowStr);
   const expressionSecrets = detectExpressionSecrets(workflowStr);
-  const codeNodeSecrets = detectCodeNodeSecrets(workflow);
+  const codeNodeSecrets = detectCodeNodeSecrets(sanitized);
 
   // CRITICAL: Block if hardcoded secrets found in workflow JSON
   if (secrets.found.length > 0) {
@@ -327,7 +336,7 @@ export function sanitizeWorkflow(workflow: WorkflowData): SanitizationResult {
     );
   }
 
-  // 2. Detect URLs for variable replacement
+  // 3. Detect URLs for variable replacement
   const urls = detectUrls(workflowStr);
   const urlVariables = urls.map((url) => {
     // Generate variable name from URL (e.g., http://192.168.1.100:5000 -> SERVICE_URL)
@@ -344,8 +353,8 @@ export function sanitizeWorkflow(workflow: WorkflowData): SanitizationResult {
     };
   });
 
-  // 3. Detect resource locators (dropdown selections)
-  const resourceLocators = findResourceLocators(workflow);
+  // 4. Detect resource locators (dropdown selections)
+  const resourceLocators = findResourceLocators(sanitized);
   const rlVariables = resourceLocators.map((rl) => {
     const fieldName = rl.path.split('.').pop() || 'field';
     const varName = fieldName.toUpperCase().replace(/([a-z])([A-Z])/g, '$1_$2');
@@ -357,11 +366,8 @@ export function sanitizeWorkflow(workflow: WorkflowData): SanitizationResult {
     };
   });
 
-  // 4. Extract credentials
-  const credentials = extractCredentials(workflow);
-
-  // 5. Create sanitized copy
-  let sanitized = JSON.parse(JSON.stringify(workflow));
+  // 5. Extract credentials
+  const credentials = extractCredentials(sanitized);
 
   // 6. Replace URLs with variable placeholders
   let sanitizedStr = JSON.stringify(sanitized);
@@ -378,20 +384,10 @@ export function sanitizeWorkflow(workflow: WorkflowData): SanitizationResult {
   }
 
   // 8. Parameterize credentials (nullify IDs and replace names with variables)
-  const { workflow: sanitizedWithCreds, credentialVariables } = parameterizeCredentials(sanitized);
+  const { workflow: sanitizedWithCreds } = parameterizeCredentials(sanitized);
   sanitized = sanitizedWithCreds;
 
-  // 9. Strip all instance-specific and read-only fields
-  // Only keep what's needed to recreate the workflow
-  const cleanWorkflow = {
-    name: sanitized.name,
-    nodes: sanitized.nodes,
-    connections: sanitized.connections,
-    settings: sanitized.settings || {},
-  };
-  sanitized = cleanWorkflow;
-
-  // 10. Check for webhook description
+  // 9. Check for webhook description
   const webhookNode = sanitized.nodes?.find(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (n: any) => n.type === 'n8n-nodes-base.webhook' || n.type?.includes('webhook')

@@ -10,15 +10,17 @@ interface N8nWorkflow {
   tags: string[];
   createdAt: string;
   updatedAt: string;
-  workflow: object;
 }
 
 interface WorkflowDetailModalProps {
   workflow: N8nWorkflow;
+  n8nBaseUrl: string;
   onClose: () => void;
 }
 
-export function WorkflowDetailModal({ workflow, onClose }: WorkflowDetailModalProps) {
+export function WorkflowDetailModal({ workflow, n8nBaseUrl, onClose }: WorkflowDetailModalProps) {
+  const workflowUrl = `${n8nBaseUrl}/workflow/${workflow.id}`;
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Overlay */}
@@ -95,10 +97,17 @@ export function WorkflowDetailModal({ workflow, onClose }: WorkflowDetailModalPr
               </div>
             </div>
 
-            {/* Workflow ID */}
+            {/* Workflow URL */}
             <div>
-              <h3 className="mb-2 text-sm font-medium">Workflow ID</h3>
-              <code className="bg-muted block rounded-lg p-3 font-mono text-sm">{workflow.id}</code>
+              <h3 className="mb-2 text-sm font-medium">Workflow</h3>
+              <a
+                href={workflowUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-muted block rounded-lg p-3 font-mono text-sm text-blue-400 hover:text-blue-300 hover:underline"
+              >
+                {workflowUrl}
+              </a>
             </div>
 
             {/* Info box */}

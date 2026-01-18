@@ -16,7 +16,6 @@ interface N8nWorkflow {
   tags: string[];
   createdAt: string;
   updatedAt: string;
-  workflow: object;
 }
 
 interface InstalledToolsViewProps {
@@ -26,6 +25,7 @@ interface InstalledToolsViewProps {
 
 export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledToolsViewProps) {
   const [workflows, setWorkflows] = useState<N8nWorkflow[]>([]);
+  const [n8nBaseUrl, setN8nBaseUrl] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submittingWorkflow, setSubmittingWorkflow] = useState<N8nWorkflow | null>(null);
@@ -52,6 +52,7 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
 
       const data = await res.json();
       setWorkflows(data.workflows || []);
+      setN8nBaseUrl(data.n8n_base_url || '');
     } catch (err) {
       console.error('Failed to fetch n8n workflows:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch workflows');
@@ -80,8 +81,17 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
     setSubmitError(null);
 
     try {
+      // Fetch full workflow JSON (includes credentials)
+      const res = await fetch(`/api/tools/n8n-workflow/${workflow.id}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to fetch workflow');
+      }
+
+      const { workflow: fullWorkflow } = await res.json();
+
       // Sanitize workflow locally
-      const result = sanitizeWorkflow(workflow.workflow);
+      const result = sanitizeWorkflow(fullWorkflow);
 
       console.log('Sanitization result:', result);
       console.log('Detected credentials:', result.detected.credentials);
@@ -91,8 +101,8 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
       setSubmittingWorkflow(workflow);
       setSanitizationResult(result);
     } catch (err) {
-      console.error('Sanitization error:', err);
-      setSubmitError(err instanceof Error ? err.message : 'Sanitization failed');
+      console.error('Share error:', err);
+      setSubmitError(err instanceof Error ? err.message : 'Failed to prepare workflow');
     }
   }, []);
 
@@ -224,6 +234,7 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
       {selectedWorkflow && (
         <WorkflowDetailModal
           workflow={selectedWorkflow}
+          n8nBaseUrl={n8nBaseUrl}
           onClose={() => setSelectedWorkflow(null)}
         />
       )}

@@ -9,7 +9,6 @@ interface N8nWorkflow {
   tags: string[];
   createdAt: string;
   updatedAt: string;
-  workflow: object;
 }
 
 interface InstalledToolCardProps {
