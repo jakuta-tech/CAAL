@@ -114,11 +114,17 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
     setSubmitError(null);
 
     try {
-      // Strip displayHint from variables before sending to VPS (privacy)
+      // Strip private data before sending to VPS (privacy)
       const detectedForApi = {
         ...sanitizationResult.detected,
+        // Strip displayHint from variables
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         variables: sanitizationResult.detected.variables.map(({ displayHint, ...rest }) => rest),
+        // Replace original credential names with variable names (privacy + consistency)
+        credentials: sanitizationResult.detected.credentials.map((c) => ({
+          credential_type: c.credential_type,
+          name: c.credential_type.toUpperCase() + '_CREDENTIAL',
+        })),
       };
 
       // POST to VPS

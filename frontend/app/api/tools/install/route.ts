@@ -27,15 +27,15 @@ function substituteCredentials(
   workflow: Record<string, unknown>,
   credentials: Record<string, string>
 ): Record<string, unknown> {
-  // credentials is { "ManifestCredName": "UserN8nCredName" }
-  // Workflow has: "credentials": { "type": { "id": null, "name": "ManifestCredName" } }
-  // We need to replace the name with the user's n8n credential name
+  // credentials is { "GITHUBAPI_CREDENTIAL": "github_account" }
+  // Workflow has: "credentials": { "type": { "id": null, "name": "${GITHUBAPI_CREDENTIAL}" } }
+  // We need to replace ${VAR_NAME} with the user's n8n credential name
   let json = JSON.stringify(workflow);
-  for (const [manifestName, userCredName] of Object.entries(credentials)) {
-    // Match "name": "ManifestCredName" and replace with user's credential name
-    // Need to be careful with JSON escaping
-    const pattern = `"name":\\s*"${manifestName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`;
-    json = json.replace(new RegExp(pattern, 'g'), `"name": "${userCredName}"`);
+  for (const [varName, userCredName] of Object.entries(credentials)) {
+    // Credentials use the same ${VAR} syntax as variables
+    // Escape special regex characters in the value
+    const escapedValue = userCredName.replace(/[\\$'"]/g, '\\$&');
+    json = json.replace(new RegExp(`\\$\\{${varName}\\}`, 'g'), escapedValue);
   }
   return JSON.parse(json);
 }
@@ -98,8 +98,19 @@ export async function POST(request: NextRequest) {
     console.log('[/api/tools/install] API key present:', !!n8nApiKey, 'length:', n8nApiKey?.length);
 
     // Substitute variables and credentials in workflow
+    console.log('[/api/tools/install] Variables to substitute:', variables);
+    console.log('[/api/tools/install] Credentials to substitute:', credentials);
+
     let processedWorkflow = substituteVariables(workflow, variables || {});
     processedWorkflow = substituteCredentials(processedWorkflow, credentials || {});
+
+    // Debug: check if credentials were substituted
+    const workflowStr = JSON.stringify(processedWorkflow);
+    if (workflowStr.includes('${')) {
+      console.log('[/api/tools/install] WARNING: Unsubstituted variables remain in workflow');
+      const remaining = workflowStr.match(/\$\{[^}]+\}/g);
+      console.log('[/api/tools/install] Remaining placeholders:', remaining);
+    }
 
     // Create workflow in n8n
     const createRes = await fetch(`${n8nBaseUrl}/api/v1/workflows`, {
