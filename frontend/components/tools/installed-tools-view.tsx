@@ -16,7 +16,16 @@ interface N8nWorkflow {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  settings?: {
+    caal_registry_id?: string;
+    caal_registry_version?: string;
+  };
 }
+
+type WorkflowStatus =
+  | { type: 'custom' }
+  | { type: 'registry'; upToDate: true }
+  | { type: 'registry'; upToDate: false; currentVersion: string; latestVersion: string };
 
 interface InstalledToolsViewProps {
   registryTools: ToolIndexEntry[];
@@ -66,14 +75,34 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
     fetchWorkflows();
   }, [fetchWorkflows]);
 
-  const isInRegistry = useCallback(
-    (workflow: N8nWorkflow): boolean => {
-      const kebabName = workflow.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+  const getWorkflowStatus = useCallback(
+    (workflow: N8nWorkflow): WorkflowStatus => {
+      const registryId = workflow.settings?.caal_registry_id;
+      const registryVersion = workflow.settings?.caal_registry_version;
 
-      return registryTools.some((tool) => tool.name === kebabName);
+      if (!registryId) {
+        // No registry ID = custom workflow
+        return { type: 'custom' };
+      }
+
+      const registryTool = registryTools.find((t) => t.id === registryId);
+
+      if (!registryTool) {
+        // ID not found in registry (tool removed?) - treat as custom
+        return { type: 'custom' };
+      }
+
+      if (registryVersion === registryTool.version) {
+        return { type: 'registry', upToDate: true };
+      }
+
+      // Version mismatch = update available
+      return {
+        type: 'registry',
+        upToDate: false,
+        currentVersion: registryVersion || 'unknown',
+        latestVersion: registryTool.version,
+      };
     },
     [registryTools]
   );
@@ -170,13 +199,9 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
 
   const handleCardClick = useCallback(
     (workflow: N8nWorkflow) => {
-      // Convert workflow name to kebab-case to find matching registry tool
-      const kebabName = workflow.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-
-      const matchingTool = registryTools.find((tool) => tool.name === kebabName);
+      // Use registry ID to find matching registry tool
+      const registryId = workflow.settings?.caal_registry_id;
+      const matchingTool = registryId ? registryTools.find((tool) => tool.id === registryId) : null;
 
       if (matchingTool) {
         // Show registry tool detail modal
@@ -232,7 +257,7 @@ export function InstalledToolsView({ registryTools, n8nEnabled }: InstalledTools
           <InstalledToolCard
             key={workflow.id}
             workflow={workflow}
-            isFromRegistry={isInRegistry(workflow)}
+            status={getWorkflowStatus(workflow)}
             onShare={handleShare}
             onClick={handleCardClick}
           />

@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle, ShareNetwork, Tag } from '@phosphor-icons/react/dist/ssr';
+import { ArrowsClockwise, CheckCircle, ShareNetwork, Tag } from '@phosphor-icons/react/dist/ssr';
 
 interface N8nWorkflow {
   id: string;
@@ -9,25 +9,43 @@ interface N8nWorkflow {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  settings?: {
+    caal_registry_id?: string;
+    caal_registry_version?: string;
+  };
 }
+
+type WorkflowStatus =
+  | { type: 'custom' }
+  | { type: 'registry'; upToDate: true }
+  | { type: 'registry'; upToDate: false; currentVersion: string; latestVersion: string };
 
 interface InstalledToolCardProps {
   workflow: N8nWorkflow;
-  isFromRegistry: boolean;
+  status: WorkflowStatus;
   onShare: (workflow: N8nWorkflow) => void;
   onClick: (workflow: N8nWorkflow) => void;
+  onUpdate?: (workflow: N8nWorkflow) => void;
 }
 
 export function InstalledToolCard({
   workflow,
-  isFromRegistry,
+  status,
   onShare,
   onClick,
+  onUpdate,
 }: InstalledToolCardProps) {
-  const badgeColor = isFromRegistry
-    ? 'bg-green-500/20 text-green-400'
-    : 'bg-blue-500/20 text-blue-400';
-  const badgeText = isFromRegistry ? 'From Registry' : 'Custom';
+  const getBadgeStyle = () => {
+    if (status.type === 'custom') {
+      return { color: 'bg-blue-500/20 text-blue-400', text: 'Custom' };
+    }
+    if (status.upToDate) {
+      return { color: 'bg-green-500/20 text-green-400', text: 'From Registry' };
+    }
+    return { color: 'bg-orange-500/20 text-orange-400', text: 'Update Available' };
+  };
+
+  const badge = getBadgeStyle();
 
   return (
     <div
@@ -36,8 +54,8 @@ export function InstalledToolCard({
     >
       {/* Badge */}
       <div className="mb-3 flex items-center justify-between">
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}>
-          {badgeText}
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badge.color}`}>
+          {badge.text}
         </span>
         {workflow.active && (
           <CheckCircle className="h-4 w-4 text-green-400" weight="fill" aria-label="Active" />
@@ -46,6 +64,13 @@ export function InstalledToolCard({
 
       {/* Title */}
       <h3 className="mb-2 font-semibold">{workflow.name.replace(/-/g, ' ')}</h3>
+
+      {/* Version info (for registry tools with updates) */}
+      {status.type === 'registry' && !status.upToDate && (
+        <p className="text-muted-foreground mb-2 text-xs">
+          v{status.currentVersion} → v{status.latestVersion}
+        </p>
+      )}
 
       {/* Tags */}
       {workflow.tags && workflow.tags.length > 0 && (
@@ -73,7 +98,7 @@ export function InstalledToolCard({
       </p>
 
       {/* Share button (only for custom tools) */}
-      {!isFromRegistry && (
+      {status.type === 'custom' && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -83,6 +108,20 @@ export function InstalledToolCard({
         >
           <ShareNetwork className="h-4 w-4" weight="bold" />
           Share to Registry
+        </button>
+      )}
+
+      {/* Update button (only for registry tools with updates) */}
+      {status.type === 'registry' && !status.upToDate && onUpdate && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onUpdate(workflow);
+          }}
+          className="mt-auto flex items-center justify-center gap-2 rounded-lg bg-orange-500/20 px-4 py-2 text-sm font-medium text-orange-400 transition-colors hover:bg-orange-500/30"
+        >
+          <ArrowsClockwise className="h-4 w-4" weight="bold" />
+          Update
         </button>
       )}
     </div>

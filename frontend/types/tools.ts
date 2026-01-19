@@ -46,6 +46,7 @@ export interface ToolAuthor {
 }
 
 export interface ToolManifest {
+  id?: string;  // Registry ID for tracking
   name: string;
   version?: string;
   description: string;
@@ -63,7 +64,9 @@ export interface ToolManifest {
 }
 
 export interface ToolIndexEntry {
+  id: string | null;  // Registry ID for tracking
   name: string;
+  version: string;
   description: string;
   category: string;
   path: string;
