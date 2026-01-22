@@ -191,7 +191,7 @@ export function WorkflowSubmissionDialog({
             <button
               onClick={onConfirm}
               disabled={!!error || isSubmitting}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-primary-bg text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium shadow-[0_2px_4px_rgba(0,0,0,0.4),0_4px_8px_rgba(0,0,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(0,0,0,0.4),0_8px_16px_rgba(0,0,0,0.3)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-y-0"
             >
               {isSubmitting ? 'Preparing submission...' : 'Continue to Submission Form'}
             </button>
