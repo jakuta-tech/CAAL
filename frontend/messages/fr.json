@@ -1,3 +1,128 @@
 {
-  "placeholder": "Remplace dans Plan 02-02"
+  "Common": {
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "loading": "Chargement...",
+    "test": "Tester",
+    "back": "Retour",
+    "continue": "Continuer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "enabled": "Actif",
+    "disabled": "Inactif",
+    "settings": "Parametres",
+    "connected": "Connecte"
+  },
+  "Welcome": {
+    "subtitle": "Discutez en direct avec votre assistant vocal IA",
+    "start": "Demarrer"
+  },
+  "Settings": {
+    "title": "Parametres",
+    "tabs": {
+      "agent": "Agent",
+      "prompt": "Prompt",
+      "providers": "Fournisseurs",
+      "llm": "Parametres LLM",
+      "integrations": "Integrations",
+      "wake": "Mot d'activation"
+    },
+    "language": {
+      "label": "Langue",
+      "description": "Choisissez votre langue preferee",
+      "updated": "Langue mise a jour"
+    },
+    "agent": {
+      "name": "Nom de l'agent",
+      "voice": "Voix",
+      "wakeGreetings": "Messages d'accueil",
+      "wakeGreetingsHint": "un par ligne"
+    },
+    "prompt": {
+      "default": "Par defaut",
+      "custom": "Personnalise"
+    },
+    "providers": {
+      "llmProvider": "Fournisseur LLM",
+      "ttsProvider": "Fournisseur TTS",
+      "hostUrl": "URL de l'hote",
+      "apiKey": "Cle API",
+      "model": "Modele",
+      "selectModel": "Selectionner un modele...",
+      "modelsAvailable": "{count} modeles disponibles",
+      "testConnectionToSee": "Testez la connexion pour voir tous les modeles disponibles",
+      "enterApiKeyToSee": "Entrez la cle API et testez pour voir tous les modeles disponibles",
+      "getApiKeyAt": "Obtenez votre cle API sur",
+      "sttProvider": "Fournisseur STT",
+      "sttProviderNote": "Selectionne automatiquement selon le fournisseur LLM.",
+      "speachesLocal": "Speaches (local)",
+      "groqWhisper": "Groq Whisper",
+      "kokoroDesc": "TTS neuronal haute qualite (necessite le conteneur Kokoro)",
+      "piperDesc": "TTS leger compatible CPU avec plus de 35 langues",
+      "aiProvider": "Fournisseur IA",
+      "ollamaDesc": "Local, prive, gratuit",
+      "groqDesc": "Inference cloud rapide",
+      "ollamaHost": "Hote Ollama",
+      "groqApiKey": "Cle API Groq",
+      "ollamaSttNote": "Utiliser Ollama active egalement la reconnaissance vocale locale via Speaches.",
+      "groqSttNote": "Utiliser Groq active egalement la reconnaissance vocale cloud rapide via Whisper."
+    },
+    "llm": {
+      "temperature": "Temperature",
+      "precise": "Precis",
+      "creative": "Creatif",
+      "contextSize": "Taille du contexte",
+      "maxTurns": "Tours maximum",
+      "toolCacheSize": "Taille du cache d'outils",
+      "turnDetection": "Detection de tour",
+      "turnDetectionDesc": "Controle comment l'agent detecte quand vous avez fini de parler",
+      "allowInterruptions": "Autoriser les interruptions",
+      "allowInterruptionsDesc": "Interrompre l'agent pendant qu'il parle",
+      "endpointingDelay": "Delai de fin",
+      "endpointingDelayDesc": "Temps d'attente apres que vous arretez de parler avant de repondre"
+    },
+    "integrations": {
+      "homeAssistant": "Home Assistant",
+      "homeAssistantDesc": "Controlez votre maison connectee",
+      "n8n": "n8n",
+      "n8nWorkflows": "Workflows n8n",
+      "n8nDesc": "Connecter des automatisations personnalisees",
+      "longLivedToken": "Jeton d'acces longue duree",
+      "accessToken": "Jeton d'acces",
+      "connected": "Connecte",
+      "entities": "{count} entites",
+      "mcpNote": "/mcp-server/http sera ajoute automatiquement",
+      "optionalNote": "Configurez des integrations optionnelles. Vous pouvez les ajouter ou les modifier plus tard dans les Parametres."
+    },
+    "wake": {
+      "enable": "Activer le mot d'activation",
+      "model": "Modele de mot d'activation",
+      "threshold": "Seuil",
+      "silenceTimeout": "Delai de silence (s)"
+    },
+    "errors": {
+      "loadFailed": "Echec du chargement des parametres",
+      "saveFailed": "Echec de l'enregistrement",
+      "connectionFailed": "Echec de la connexion",
+      "invalidApiKey": "Cle API invalide"
+    },
+    "status": {
+      "downloadingVoice": "Telechargement du modele vocal..."
+    },
+    "tts": {
+      "engine": "Moteur de synthese vocale",
+      "kokoroDesc": "TTS neuronal haute qualite accelere GPU",
+      "piperDesc": "Leger, compatible CPU avec plus de 35 langues",
+      "kokoroNote": "Kokoro necessite un GPU pour des performances optimales.",
+      "piperNote": "Piper fonctionne sur CPU et supporte de nombreuses langues."
+    }
+  },
+  "Setup": {
+    "welcome": "Bienvenue sur CAAL",
+    "stepOf": "Etape {current} sur {total}",
+    "step1Title": "Choisissez votre fournisseur IA",
+    "step2Title": "Choisissez votre voix",
+    "step3Title": "Configurer les integrations",
+    "finishSetup": "Terminer la configuration"
+  }
 }

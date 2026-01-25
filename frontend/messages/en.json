@@ -1,3 +1,128 @@
 {
-  "placeholder": "Replaced in Plan 02-02"
+  "Common": {
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "test": "Test",
+    "back": "Back",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "close": "Close",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "settings": "Settings",
+    "connected": "Connected"
+  },
+  "Welcome": {
+    "subtitle": "Chat live with your voice AI agent",
+    "start": "Start"
+  },
+  "Settings": {
+    "title": "Settings",
+    "tabs": {
+      "agent": "Agent",
+      "prompt": "Prompt",
+      "providers": "Providers",
+      "llm": "LLM Settings",
+      "integrations": "Integrations",
+      "wake": "Wake Word"
+    },
+    "language": {
+      "label": "Language",
+      "description": "Choose your preferred language",
+      "updated": "Language updated"
+    },
+    "agent": {
+      "name": "Agent Name",
+      "voice": "Voice",
+      "wakeGreetings": "Wake Greetings",
+      "wakeGreetingsHint": "one per line"
+    },
+    "prompt": {
+      "default": "Default",
+      "custom": "Custom"
+    },
+    "providers": {
+      "llmProvider": "LLM Provider",
+      "ttsProvider": "TTS Provider",
+      "hostUrl": "Host URL",
+      "apiKey": "API Key",
+      "model": "Model",
+      "selectModel": "Select a model...",
+      "modelsAvailable": "{count} models available",
+      "testConnectionToSee": "Test connection to see all available models",
+      "enterApiKeyToSee": "Enter API key and test to see all available models",
+      "getApiKeyAt": "Get your API key at",
+      "sttProvider": "STT Provider",
+      "sttProviderNote": "Automatically selected based on LLM provider.",
+      "speachesLocal": "Speaches (local)",
+      "groqWhisper": "Groq Whisper",
+      "kokoroDesc": "High-quality neural TTS (requires Kokoro container)",
+      "piperDesc": "Lightweight CPU-friendly TTS with 35+ languages",
+      "aiProvider": "AI Provider",
+      "ollamaDesc": "Local, private, free",
+      "groqDesc": "Fast cloud inference",
+      "ollamaHost": "Ollama Host",
+      "groqApiKey": "Groq API Key",
+      "ollamaSttNote": "Using Ollama also enables local speech-to-text via Speaches.",
+      "groqSttNote": "Using Groq also enables fast cloud speech-to-text via Whisper."
+    },
+    "llm": {
+      "temperature": "Temperature",
+      "precise": "Precise",
+      "creative": "Creative",
+      "contextSize": "Context Size",
+      "maxTurns": "Max Turns",
+      "toolCacheSize": "Tool Cache Size",
+      "turnDetection": "Turn Detection",
+      "turnDetectionDesc": "Control how the agent detects when you're done speaking",
+      "allowInterruptions": "Allow Interruptions",
+      "allowInterruptionsDesc": "Interrupt the agent while speaking",
+      "endpointingDelay": "Endpointing Delay",
+      "endpointingDelayDesc": "How long to wait after you stop speaking before responding"
+    },
+    "integrations": {
+      "homeAssistant": "Home Assistant",
+      "homeAssistantDesc": "Control your smart home",
+      "n8n": "n8n",
+      "n8nWorkflows": "n8n Workflows",
+      "n8nDesc": "Connect custom automations",
+      "longLivedToken": "Long-lived Access Token",
+      "accessToken": "Access Token",
+      "connected": "Connected",
+      "entities": "{count} entities",
+      "mcpNote": "/mcp-server/http will be appended automatically",
+      "optionalNote": "Configure optional integrations. You can add or change these later in Settings."
+    },
+    "wake": {
+      "enable": "Enable Wake Word",
+      "model": "Wake Word Model",
+      "threshold": "Threshold",
+      "silenceTimeout": "Silence Timeout (s)"
+    },
+    "errors": {
+      "loadFailed": "Failed to load settings",
+      "saveFailed": "Failed to save",
+      "connectionFailed": "Connection failed",
+      "invalidApiKey": "Invalid API key"
+    },
+    "status": {
+      "downloadingVoice": "Downloading voice model..."
+    },
+    "tts": {
+      "engine": "Text-to-Speech Engine",
+      "kokoroDesc": "GPU-accelerated, high quality neural TTS",
+      "piperDesc": "CPU-friendly, lightweight with 35+ languages",
+      "kokoroNote": "Kokoro requires a GPU for optimal performance.",
+      "piperNote": "Piper runs on CPU and supports many languages."
+    }
+  },
+  "Setup": {
+    "welcome": "Welcome to CAAL",
+    "stepOf": "Step {current} of {total}",
+    "step1Title": "Choose your AI provider",
+    "step2Title": "Choose your voice",
+    "step3Title": "Configure integrations",
+    "finishSetup": "Finish Setup"
+  }
 }
