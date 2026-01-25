@@ -57,11 +57,11 @@ Plans:
   2. User can change language via selector in mobile settings
   3. All screens (settings, main, connection) display localized content
   4. App respects the global language setting from CAAL backend
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Flutter intl infrastructure
-- [ ] 03-02: ARB files and screen localization
+- [ ] 03-01-PLAN.md - Flutter intl infrastructure (l10n config, ARB files, LocaleProvider)
+- [ ] 03-02-PLAN.md - Screen localization and language selector
 
 ### Phase 4: Voice Pipeline
 **Goal**: Users can have full voice conversations in their configured language
@@ -95,4 +95,4 @@ Note: Phases 2 and 3 can run in parallel after Phase 1 completes.
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-01-25 - Phase 2 complete*
+*Last updated: 2026-01-25 - Phase 3 planned*
