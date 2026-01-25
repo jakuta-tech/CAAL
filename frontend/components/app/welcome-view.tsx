@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Gear, Wrench } from '@phosphor-icons/react/dist/ssr';
 import { Button } from '@/components/livekit/button';
 
@@ -33,6 +36,9 @@ export const WelcomeView = ({
   onOpenTools,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
+  const t = useTranslations('Welcome');
+  const tCommon = useTranslations('Common');
+
   return (
     <div ref={ref} className="relative min-h-screen" style={{ background: 'var(--surface-deep)' }}>
       {/* Top right buttons */}
@@ -41,7 +47,7 @@ export const WelcomeView = ({
           <button
             onClick={onOpenTools}
             className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 transition-colors"
-            title="Tools"
+            title={tCommon('tools')}
           >
             <Wrench className="h-6 w-6" weight="fill" />
           </button>
@@ -50,7 +56,7 @@ export const WelcomeView = ({
           <button
             onClick={onOpenSettings}
             className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 transition-colors"
-            title="Settings"
+            title={tCommon('settings')}
           >
             <Gear className="h-6 w-6" weight="bold" />
           </button>
@@ -60,9 +66,7 @@ export const WelcomeView = ({
       <section className="flex min-h-screen flex-col items-center justify-center text-center">
         <WelcomeImage />
 
-        <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">
-          Chat live with your voice AI agent
-        </p>
+        <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">{t('subtitle')}</p>
 
         <Button variant="primary" size="lg" onClick={onStartCall} className="mt-6 w-64 font-mono">
           {startButtonText}

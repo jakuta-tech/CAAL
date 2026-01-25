@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Check, CircleNotch, X } from '@phosphor-icons/react/dist/ssr';
 import type { SetupData } from './setup-wizard';
 
@@ -12,6 +13,9 @@ interface ProviderStepProps {
 type TestStatus = 'idle' | 'testing' | 'success' | 'error';
 
 export function ProviderStep({ data, updateData }: ProviderStepProps) {
+  const t = useTranslations('Settings.providers');
+  const tCommon = useTranslations('Common');
+
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [groqModels, setGroqModels] = useState<string[]>([]);
   const [testStatus, setTestStatus] = useState<TestStatus>('idle');
@@ -110,7 +114,7 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
     <div className="space-y-4">
       {/* Provider Toggle */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">AI Provider</label>
+        <label className="text-sm font-medium">{t('aiProvider')}</label>
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => updateData({ llm_provider: 'ollama' })}
@@ -121,7 +125,7 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
             }`}
           >
             <div className="font-medium">Ollama</div>
-            <div className="text-muted-foreground text-xs">Local, private, free</div>
+            <div className="text-muted-foreground text-xs">{t('ollamaDesc')}</div>
           </button>
           <button
             onClick={() => updateData({ llm_provider: 'groq' })}
@@ -132,7 +136,7 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
             }`}
           >
             <div className="font-medium">Groq</div>
-            <div className="text-muted-foreground text-xs">Fast cloud inference</div>
+            <div className="text-muted-foreground text-xs">{t('groqDesc')}</div>
           </button>
         </div>
       </div>
@@ -141,7 +145,7 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
       {data.llm_provider === 'ollama' && (
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-sm font-medium">Ollama Host</label>
+            <label className="text-sm font-medium">{t('ollamaHost')}</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -156,26 +160,26 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
                 className="bg-muted hover:bg-muted/80 flex items-center gap-2 rounded-md px-3 py-2 text-sm disabled:opacity-50"
               >
                 <StatusIcon />
-                Test
+                {tCommon('test')}
               </button>
             </div>
             {testError && <p className="text-xs text-red-500">{testError}</p>}
             {testStatus === 'success' && (
               <p className="text-xs text-green-500">
-                Connected - {ollamaModels.length} models available
+                {tCommon('connected')} - {t('modelsAvailable', { count: ollamaModels.length })}
               </p>
             )}
           </div>
 
           {ollamaModels.length > 0 && (
             <div className="space-y-1">
-              <label className="text-sm font-medium">Model</label>
+              <label className="text-sm font-medium">{t('model')}</label>
               <select
                 value={data.ollama_model}
                 onChange={(e) => updateData({ ollama_model: e.target.value })}
                 className="border-input bg-background w-full rounded-md border px-3 py-2"
               >
-                <option value="">Select a model...</option>
+                <option value="">{t('selectModel')}</option>
                 {ollamaModels.map((model) => (
                   <option key={model} value={model}>
                     {model}
@@ -185,9 +189,7 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
             </div>
           )}
 
-          <p className="text-muted-foreground text-xs">
-            Using Ollama also enables local speech-to-text via Speaches.
-          </p>
+          <p className="text-muted-foreground text-xs">{t('ollamaSttNote')}</p>
         </div>
       )}
 
@@ -195,7 +197,7 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
       {data.llm_provider === 'groq' && (
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-sm font-medium">Groq API Key</label>
+            <label className="text-sm font-medium">{t('groqApiKey')}</label>
             <div className="flex gap-2">
               <input
                 type="password"
@@ -210,17 +212,17 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
                 className="bg-muted hover:bg-muted/80 flex items-center gap-2 rounded-md px-3 py-2 text-sm disabled:opacity-50"
               >
                 <StatusIcon />
-                Test
+                {tCommon('test')}
               </button>
             </div>
             {testError && <p className="text-xs text-red-500">{testError}</p>}
             {testStatus === 'success' && (
               <p className="text-xs text-green-500">
-                Connected - {groqModels.length} models available
+                {tCommon('connected')} - {t('modelsAvailable', { count: groqModels.length })}
               </p>
             )}
             <p className="text-muted-foreground text-xs">
-              Get your API key at{' '}
+              {t('getApiKeyAt')}{' '}
               <a
                 href="https://console.groq.com/keys"
                 target="_blank"
@@ -234,13 +236,13 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
 
           {groqModels.length > 0 && (
             <div className="space-y-1">
-              <label className="text-sm font-medium">Model</label>
+              <label className="text-sm font-medium">{t('model')}</label>
               <select
                 value={data.groq_model}
                 onChange={(e) => updateData({ groq_model: e.target.value })}
                 className="border-input bg-background w-full rounded-md border px-3 py-2"
               >
-                <option value="">Select a model...</option>
+                <option value="">{t('selectModel')}</option>
                 {groqModels.map((model) => (
                   <option key={model} value={model}>
                     {model}
@@ -250,9 +252,7 @@ export function ProviderStep({ data, updateData }: ProviderStepProps) {
             </div>
           )}
 
-          <p className="text-muted-foreground text-xs">
-            Using Groq also enables fast cloud speech-to-text via Whisper.
-          </p>
+          <p className="text-muted-foreground text-xs">{t('groqSttNote')}</p>
         </div>
       )}
     </div>

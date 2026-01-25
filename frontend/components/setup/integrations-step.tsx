@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Check, CircleNotch, X } from '@phosphor-icons/react/dist/ssr';
 import type { SetupData } from './setup-wizard';
 
@@ -18,6 +19,10 @@ interface IntegrationTestState {
 }
 
 export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
+  const t = useTranslations('Settings.integrations');
+  const tProviders = useTranslations('Settings.providers');
+  const tCommon = useTranslations('Common');
+
   const [hassTest, setHassTest] = useState<IntegrationTestState>({
     status: 'idle',
     error: null,
@@ -48,7 +53,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
         setHassTest({
           status: 'success',
           error: null,
-          info: `Connected - ${result.device_count} entities`,
+          info: `${t('connected')} - ${t('entities', { count: result.device_count })}`,
         });
       } else {
         setHassTest({
@@ -64,7 +69,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
         info: null,
       });
     }
-  }, [data.hass_host, data.hass_token]);
+  }, [data.hass_host, data.hass_token, t]);
 
   // Build full n8n MCP URL from host
   const getN8nMcpUrl = (host: string) => {
@@ -98,7 +103,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
         setN8nTest({
           status: 'success',
           error: null,
-          info: 'Connected',
+          info: t('connected'),
         });
       } else {
         setN8nTest({
@@ -114,7 +119,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
         info: null,
       });
     }
-  }, [data.n8n_url, data.n8n_token]);
+  }, [data.n8n_url, data.n8n_token, t]);
 
   const StatusIcon = ({ status }: { status: TestStatus }) => {
     switch (status) {
@@ -149,16 +154,14 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-sm">
-        Configure optional integrations. You can add or change these later in Settings.
-      </p>
+      <p className="text-muted-foreground text-sm">{t('optionalNote')}</p>
 
       {/* Home Assistant */}
       <div className="border-input dark:border-muted space-y-3 rounded-lg border p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="font-medium">Home Assistant</div>
-            <div className="text-muted-foreground text-xs">Control your smart home</div>
+            <div className="font-medium">{t('homeAssistant')}</div>
+            <div className="text-muted-foreground text-xs">{t('homeAssistantDesc')}</div>
           </div>
           <Toggle
             enabled={data.hass_enabled}
@@ -169,7 +172,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
         {data.hass_enabled && (
           <div className="space-y-3 pt-2">
             <div className="space-y-1">
-              <label className="text-muted-foreground text-xs">Host URL</label>
+              <label className="text-muted-foreground text-xs">{tProviders('hostUrl')}</label>
               <input
                 type="text"
                 value={data.hass_host}
@@ -179,7 +182,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-muted-foreground text-xs">Long-Lived Access Token</label>
+              <label className="text-muted-foreground text-xs">{t('longLivedToken')}</label>
               <div className="flex gap-2">
                 <input
                   type="password"
@@ -194,7 +197,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
                   className="bg-muted hover:bg-muted/80 flex items-center gap-2 rounded-md px-3 py-2 text-sm disabled:opacity-50"
                 >
                   <StatusIcon status={hassTest.status} />
-                  Test
+                  {tCommon('test')}
                 </button>
               </div>
               {hassTest.error && <p className="text-xs text-red-500">{hassTest.error}</p>}
@@ -208,8 +211,8 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
       <div className="border-input dark:border-muted space-y-3 rounded-lg border p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="font-medium">n8n Workflows</div>
-            <div className="text-muted-foreground text-xs">Connect custom automations</div>
+            <div className="font-medium">{t('n8nWorkflows')}</div>
+            <div className="text-muted-foreground text-xs">{t('n8nDesc')}</div>
           </div>
           <Toggle
             enabled={data.n8n_enabled}
@@ -220,7 +223,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
         {data.n8n_enabled && (
           <div className="space-y-3 pt-2">
             <div className="space-y-1">
-              <label className="text-muted-foreground text-xs">n8n Host URL</label>
+              <label className="text-muted-foreground text-xs">{tProviders('hostUrl')}</label>
               <input
                 type="text"
                 value={data.n8n_url}
@@ -228,12 +231,10 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
                 placeholder="http://n8n:5678"
                 className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
               />
-              <p className="text-muted-foreground text-xs">
-                /mcp-server/http will be appended automatically
-              </p>
+              <p className="text-muted-foreground text-xs">{t('mcpNote')}</p>
             </div>
             <div className="space-y-1">
-              <label className="text-muted-foreground text-xs">Access Token</label>
+              <label className="text-muted-foreground text-xs">{t('accessToken')}</label>
               <div className="flex gap-2">
                 <input
                   type="password"
@@ -248,7 +249,7 @@ export function IntegrationsStep({ data, updateData }: IntegrationsStepProps) {
                   className="bg-muted hover:bg-muted/80 flex items-center gap-2 rounded-md px-3 py-2 text-sm disabled:opacity-50"
                 >
                   <StatusIcon status={n8nTest.status} />
-                  Test
+                  {tCommon('test')}
                 </button>
               </div>
               {n8nTest.error && <p className="text-xs text-red-500">{n8nTest.error}</p>}

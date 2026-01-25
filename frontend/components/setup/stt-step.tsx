@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { SetupData } from './setup-wizard';
 
 interface SttStepProps {
@@ -9,6 +10,9 @@ interface SttStepProps {
 }
 
 export function SttStep({ data, updateData }: SttStepProps) {
+  const t = useTranslations('Settings.tts');
+  const tAgent = useTranslations('Settings.agent');
+
   const [voices, setVoices] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +48,7 @@ export function SttStep({ data, updateData }: SttStepProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Text-to-Speech Engine</label>
+        <label className="text-sm font-medium">{t('engine')}</label>
         <div className="grid grid-cols-1 gap-2">
           <button
             onClick={() => updateData({ tts_provider: 'kokoro' })}
@@ -55,9 +59,7 @@ export function SttStep({ data, updateData }: SttStepProps) {
             }`}
           >
             <div className="font-medium">Kokoro</div>
-            <div className="text-muted-foreground text-xs">
-              GPU-accelerated, high quality neural TTS
-            </div>
+            <div className="text-muted-foreground text-xs">{t('kokoroDesc')}</div>
           </button>
           <button
             onClick={() => updateData({ tts_provider: 'piper' })}
@@ -68,15 +70,13 @@ export function SttStep({ data, updateData }: SttStepProps) {
             }`}
           >
             <div className="font-medium">Piper</div>
-            <div className="text-muted-foreground text-xs">
-              CPU-friendly, lightweight with 35+ languages
-            </div>
+            <div className="text-muted-foreground text-xs">{t('piperDesc')}</div>
           </button>
         </div>
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Voice</label>
+        <label className="text-sm font-medium">{tAgent('voice')}</label>
         <select
           value={currentVoice}
           onChange={(e) => handleVoiceChange(e.target.value)}
@@ -96,9 +96,7 @@ export function SttStep({ data, updateData }: SttStepProps) {
       </div>
 
       <p className="text-muted-foreground text-xs">
-        {data.tts_provider === 'kokoro'
-          ? 'Kokoro requires a GPU for optimal performance.'
-          : 'Piper runs on CPU and supports many languages.'}
+        {data.tts_provider === 'kokoro' ? t('kokoroNote') : t('piperNote')}
       </p>
     </div>
   );
