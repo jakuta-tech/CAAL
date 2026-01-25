@@ -24,11 +24,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Mobile (Flutter)
 
-- [ ] **MOBILE-01**: Flutter intl infrastructure with flutter_localizations
-- [ ] **MOBILE-02**: ARB EN file (lib/l10n/app_en.arb)
-- [ ] **MOBILE-03**: ARB FR file (lib/l10n/app_fr.arb)
-- [ ] **MOBILE-04**: All screens localized (settings, main, connection)
-- [ ] **MOBILE-05**: Language selector in mobile settings
+- [x] **MOBILE-01**: Flutter intl infrastructure with flutter_localizations
+- [x] **MOBILE-02**: ARB EN file (lib/l10n/app_en.arb)
+- [x] **MOBILE-03**: ARB FR file (lib/l10n/app_fr.arb)
+- [x] **MOBILE-04**: All screens localized (settings, main, connection)
+- [x] **MOBILE-05**: Language selector in mobile settings
 
 ### Voice Pipeline (Agent)
 
@@ -82,11 +82,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FRONT-04 | Phase 2 | Complete |
 | FRONT-05 | Phase 2 | Complete |
 | FRONT-06 | Phase 2 | Complete |
-| MOBILE-01 | Phase 3 | Pending |
-| MOBILE-02 | Phase 3 | Pending |
-| MOBILE-03 | Phase 3 | Pending |
-| MOBILE-04 | Phase 3 | Pending |
-| MOBILE-05 | Phase 3 | Pending |
+| MOBILE-01 | Phase 3 | Complete |
+| MOBILE-02 | Phase 3 | Complete |
+| MOBILE-03 | Phase 3 | Complete |
+| MOBILE-04 | Phase 3 | Complete |
+| MOBILE-05 | Phase 3 | Complete |
 | VOICE-01 | Phase 4 | Pending |
 | VOICE-02 | Phase 4 | Pending |
 | VOICE-03 | Phase 4 | Pending |
@@ -100,4 +100,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 - Phase 2 requirements complete*
+*Last updated: 2026-01-25 - Phase 3 requirements complete*
