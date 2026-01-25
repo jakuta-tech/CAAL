@@ -5,36 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** A French-speaking user can interact with CAAL entirely in French with no English friction
-**Current focus:** Phase 1 - Foundation (COMPLETE)
+**Current focus:** Phase 2 - Frontend i18n (IN PROGRESS)
 
 ## Current Position
 
-Phase: 1 of 4 (Foundation) - COMPLETE
-Plan: 1 of 1 in current phase
-Status: Phase complete, ready for Phase 2
-Last activity: 2026-01-25 - Completed 01-01-PLAN.md
+Phase: 2 of 4 (Frontend i18n)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-25 - Completed 02-01-PLAN.md
 
-Progress: [#---------] 12.5% (1/8 plans)
+Progress: [##--------] 25% (2/8 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
+- Total plans completed: 2
 - Average duration: 4 min
-- Total execution time: 4 min
+- Total execution time: 8 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 1/1 | 4 min | 4 min |
-| 2. Frontend i18n | 0/2 | - | - |
+| 2. Frontend i18n | 1/2 | 4 min | 4 min |
 | 3. Mobile i18n | 0/2 | - | - |
 | 4. Voice Pipeline | 0/3 | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 4 min
-- Trend: N/A (1 data point)
+- Last 5 plans: 4 min, 4 min
+- Trend: Stable at ~4 min/plan
 
 *Updated after each plan completion*
 
@@ -50,6 +50,8 @@ Recent decisions affecting current work:
 - next-intl for frontend (best App Router integration)
 - Language uses ISO 639-1 codes ("en", "fr") - from 01-01
 - Language field in SetupCompleteRequest is optional for backward compatibility - from 01-01
+- Cookie-based locale (CAAL_LOCALE) instead of URL routing - from 02-01
+- English messages as base with locale overlay for fallback - from 02-01
 
 ### Pending Todos
 
@@ -62,6 +64,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-25T17:51:44Z
-Stopped at: Completed 01-01-PLAN.md (Language Setting Infrastructure)
+Last session: 2026-01-25T18:24:00Z
+Stopped at: Completed 02-01-PLAN.md (next-intl Infrastructure)
 Resume file: None
