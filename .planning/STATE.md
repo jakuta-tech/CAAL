@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** A French-speaking user can interact with CAAL entirely in French with no English friction
-**Current focus:** Phase 3 - Mobile i18n (Complete)
+**Current focus:** Phase 4 - Voice Pipeline (In progress)
 
 ## Current Position
 
-Phase: 3 of 4 (Mobile i18n)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-25 - Completed 03-02-PLAN.md (Screen Localization)
+Phase: 4 of 4 (Voice Pipeline)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-26 - Completed 04-01-PLAN.md
 
-Progress: [#####-----] 63% (5/8 plans)
+Progress: [########--] 86% (6/7 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 5.4 min
-- Total execution time: 27 min
+- Total plans completed: 6
+- Average duration: 5.2 min
+- Total execution time: 31 min
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [#####-----] 63% (5/8 plans)
 | 1. Foundation | 1/1 | 4 min | 4 min |
 | 2. Frontend i18n | 2/2 | 10 min | 5 min |
 | 3. Mobile i18n | 2/2 | 13 min | 6.5 min |
-| 4. Voice Pipeline | 0/3 | - | - |
+| 4. Voice Pipeline | 1/2 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 6 min, 6 min, 6 min, 7 min
+- Last 5 plans: 6 min, 6 min, 6 min, 7 min, 4 min
 - Trend: Stable at ~6 min/plan
 
 *Updated after each plan completion*
@@ -58,6 +58,10 @@ Recent decisions affecting current work:
 - Relative imports for AppLocalizations (package:flutter_gen deprecated) - from 03-01
 - Enum-based status messages in setup_screen for context-free localization - from 03-02
 - Language selector visible in settings even without server connection - from 03-02
+- Per-language prompt dirs: prompt/{lang}/default.md with fallback to prompt/default.md - from 04-01
+- Custom prompts remain language-neutral (prompt/custom.md always wins) - from 04-01
+- French dates use cardinal numbers except "premier" for 1st - from 04-01
+- French prompt uses informal tu/toi register - from 04-01
 
 ### Pending Todos
 
@@ -70,6 +74,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-25T19:03:58Z
-Stopped at: Completed 03-02-PLAN.md (Screen Localization) - Phase 3 complete
+Last session: 2026-01-26
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
