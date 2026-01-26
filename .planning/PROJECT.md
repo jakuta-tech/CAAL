@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Adding full multilingual support to CAAL voice assistant. A global language setting controls the entire experience: UI, agent responses, speech-to-text, and text-to-speech. The first supported languages are English (reference) and French (complete implementation).
+Adding full multilingual support to CAAL voice assistant. A global language setting controls the entire experience: UI, agent responses, speech-to-text, and text-to-speech. English (reference) and French (complete implementation) are supported across all components.
 
 ## Core Value
 
@@ -12,7 +12,7 @@ A French-speaking user can interact with CAAL entirely in French — from the se
 
 ### Validated
 
-<!-- Existing CAAL capabilities (from codebase) -->
+<!-- Existing CAAL capabilities -->
 
 - ✓ Voice assistant with LiveKit WebRTC — existing
 - ✓ Multi-provider LLM (Ollama, Groq) — existing
@@ -23,23 +23,25 @@ A French-speaking user can interact with CAAL entirely in French — from the se
 - ✓ Next.js frontend with setup wizard — existing
 - ✓ Flutter mobile app — existing
 
+<!-- v1.0 Multilingual Support -->
+
+- ✓ Global language setting in settings.json — v1.0
+- ✓ Language propagation to all components — v1.0
+- ✓ Backward compatibility with English-only installations — v1.0
+- ✓ Frontend i18n with next-intl (EN/FR, 128 keys) — v1.0
+- ✓ Language selector in web settings panel — v1.0
+- ✓ Static rendering preserved — v1.0
+- ✓ Mobile i18n with Flutter intl (EN/FR, 84 keys) — v1.0
+- ✓ Language selector in mobile settings — v1.0
+- ✓ Per-language system prompts — v1.0
+- ✓ STT language configuration (Whisper parameter) — v1.0
+- ✓ TTS voice mapping per language (Piper) — v1.0
+- ✓ Tool response reformulation in configured language — v1.0
+- ✓ Localized wake greetings — v1.0
+
 ### Active
 
-<!-- i18n milestone scope -->
-
-- [ ] Global language setting in settings.json
-- [ ] Frontend i18n infrastructure (next-intl)
-- [ ] Frontend EN translations (reference)
-- [ ] Frontend FR translations (complete)
-- [ ] Mobile i18n infrastructure (Flutter intl)
-- [ ] Mobile EN translations
-- [ ] Mobile FR translations
-- [ ] Agent prompt files per language (prompt/default_en.md, prompt/default_fr.md)
-- [ ] STT language configuration (Whisper language parameter)
-- [ ] TTS voice mapping per language (FR voices for Kokoro/Piper)
-- [ ] Agent reformulates tool responses in configured language
-- [ ] Language selector in settings panel
-- [ ] Contributor documentation for adding new languages
+(None — next milestone requirements via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -47,41 +49,46 @@ A French-speaking user can interact with CAAL entirely in French — from the se
 - Real-time language switching mid-conversation — requires session restart
 - Translation of n8n workflow names/descriptions — kept as-is
 - Home Assistant entity names translation — kept as-is
-- More than EN/FR in this milestone — infrastructure supports it, content later
+- More than EN/FR — infrastructure supports it, content later
+- RTL layout support — not needed for EN/FR
+- Code-switching support — complex, limited STT support
 
 ## Context
 
-**Existing architecture supports this well:**
-- Settings system already handles runtime configuration
-- Provider pattern allows language-specific voice selection
-- Prompt system already has default/custom split
-- Whisper natively supports French transcription
+**Shipped v1.0 Multilingual Support (2026-01-26):**
+- 65 files, +8,501 / -565 lines across Python, TypeScript, Dart
+- 4 phases, 7 plans, 37 commits over 2 days
+- Tech stack: next-intl (frontend), flutter_localizations (mobile), per-language prompts (agent)
+- Audit: 19/19 requirements, all integration points verified
+- Human testing: 8/8 tests passed, 3 bugs found and fixed during testing
+- Documentation: `docs/I18N.md` added with full contributor guide
 
-**Technical considerations:**
-- Kokoro TTS French voice availability needs verification
-- Piper has French voices (speaches-ai/piper-fr_FR-*)
-- next-intl works well with Next.js 15 App Router
-- Flutter has built-in intl support
-
-**Contribution target:**
-- PR to CoreWorxLab/CAAL main repository
-- Must maintain backward compatibility (EN default)
+**Known issues (not i18n):**
+- DuckDuckGo web search returns poor results for French queries (search quality, not i18n)
 
 ## Constraints
 
 - **Compatibility**: Must not break existing EN-only installations
 - **Default**: English remains default language for new installations
-- **Tech stack**: Use next-intl for frontend (not react-i18next)
-- **File structure**: Prompt files named `prompt/default_{lang}.md`
+- **Tech stack**: next-intl for frontend (not react-i18next)
+- **Prompts**: Per-language directories: prompt/{lang}/default.md
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Global language setting | Simpler UX than separate UI/voice settings | — Pending |
-| Separate prompt files per language | Allows full localization including personality | — Pending |
-| next-intl for frontend | Best App Router integration, popular | — Pending |
-| Agent reformulates tool responses | Better UX than mixed-language responses | — Pending |
+| Global language setting | Simpler UX than separate UI/voice settings | ✓ Good |
+| Separate prompt files per language | Allows full localization including personality | ✓ Good |
+| next-intl for frontend | Best App Router integration, popular | ✓ Good |
+| Agent reformulates tool responses | Better UX than mixed-language responses | ✓ Good |
+| Cookie-based locale (CAAL_LOCALE) | No URL routing changes needed, simpler | ✓ Good |
+| English messages as base fallback | Missing translations fall back to EN | ✓ Good |
+| Technical terms stay in English | Ollama, Groq, Piper etc. are proper nouns | ✓ Good |
+| Per-language prompt dirs | prompt/{lang}/default.md with flat fallback | ✓ Good |
+| Custom prompts language-neutral | prompt/custom.md always wins over language | ✓ Good |
+| PIPER_VOICE_MAP in voice_agent.py | Keep mapping close to usage, not in settings | ✓ Good |
+| Auto-switch Kokoro→Piper for non-EN | Kokoro has limited multilingual support | ✓ Good |
+| French tu/toi register | More natural for voice assistant context | ✓ Good |
 
 ---
-*Last updated: 2026-01-25 after initialization*
+*Last updated: 2026-01-26 after v1.0 milestone*
