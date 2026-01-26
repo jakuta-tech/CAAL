@@ -480,7 +480,8 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     else:
         logger.info(f"  STT: {SPEACHES_URL} ({WHISPER_MODEL}, lang={language})")
     if runtime["tts_provider"] == "piper":
-        logger.info(f"  TTS: Piper ({runtime['tts_voice_piper']})")
+        actual_piper_voice = PIPER_VOICE_MAP.get(language, PIPER_VOICE_MAP["en"])
+        logger.info(f"  TTS: Piper ({actual_piper_voice})")
     else:
         logger.info(f"  TTS: Kokoro ({runtime['tts_voice_kokoro']})")
     if runtime["llm_provider"] == "ollama":
@@ -525,10 +526,10 @@ async def entrypoint(ctx: agents.JobContext) -> None:
         wake_word_model = all_settings.get("wake_word_model", "models/hey_jarvis.onnx")
         wake_word_threshold = all_settings.get("wake_word_threshold", 0.5)
         wake_word_timeout = all_settings.get("wake_word_timeout", 3.0)
-        # Use user's custom greetings if set, otherwise use per-language defaults
-        user_settings = settings_module.load_user_settings()
-        if "wake_greetings" in user_settings:
-            wake_greetings = user_settings["wake_greetings"]
+        # Use user's custom greetings if explicitly changed, otherwise per-language defaults
+        user_greetings = settings_module.load_user_settings().get("wake_greetings")
+        if user_greetings is not None and user_greetings != DEFAULT_WAKE_GREETINGS["en"]:
+            wake_greetings = user_greetings
         else:
             wake_greetings = DEFAULT_WAKE_GREETINGS.get(
                 language, DEFAULT_WAKE_GREETINGS["en"]
@@ -738,10 +739,10 @@ async def entrypoint(ctx: agents.JobContext) -> None:
                     await session.say(message)
 
             elif action == "wake":
-                # Use user's custom greetings if set, otherwise per-language defaults
-                user_settings_wh = settings_module.load_user_settings()
-                if "wake_greetings" in user_settings_wh:
-                    greetings = user_settings_wh["wake_greetings"]
+                # Use user's custom greetings if explicitly changed, otherwise per-language defaults
+                user_greetings_wh = settings_module.load_user_settings().get("wake_greetings")
+                if user_greetings_wh is not None and user_greetings_wh != DEFAULT_WAKE_GREETINGS["en"]:
+                    greetings = user_greetings_wh
                 else:
                     lang = settings_module.get_setting("language", "en")
                     greetings = DEFAULT_WAKE_GREETINGS.get(
