@@ -162,8 +162,13 @@ class GroqProvider(LLMProvider):
             request_kwargs["reasoning_effort"] = "low"
 
         # Include tools if provided (for validation of tool_calls in message history)
+        # Set tool_choice="none" to prevent the model from making tool calls
+        # in streaming mode — streaming is used for text responses only.
+        # Without this, the model may generate tool call deltas instead of
+        # content deltas, producing zero text output and a silent session.
         if tools:
             request_kwargs["tools"] = tools
+            request_kwargs["tool_choice"] = "none"
 
         stream = await self._client.chat.completions.create(**request_kwargs)
 
