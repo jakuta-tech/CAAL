@@ -47,8 +47,9 @@ export interface ToolAuthor {
 }
 
 export interface ToolManifest {
-  id?: string;  // Registry ID for tracking
+  id?: string; // Registry ID for tracking
   name: string;
+  friendlyName?: string; // Display name (e.g., "Google Tasks" vs "google_tasks")
   version?: string;
   description: string;
   category: string;
@@ -62,11 +63,16 @@ export interface ToolManifest {
   dependencies?: string[];
   created?: string;
   updated?: string;
+  // Tool suite fields
+  toolSuite?: boolean; // true if this is a multi-action tool suite
+  actions?: string[]; // Available actions for suites (e.g., ["get", "add", "complete"])
+  icon?: string; // Icon filename (e.g., "google_tasks.svg")
 }
 
 export interface ToolIndexEntry {
-  id: string | null;  // Registry ID for tracking
+  id: string | null; // Registry ID for tracking
   name: string;
+  friendlyName?: string; // Display name (e.g., "Google Tasks" vs "google_tasks")
   version: string;
   description: string;
   category: string;
@@ -77,6 +83,10 @@ export interface ToolIndexEntry {
   author: string;
   tags: string[];
   updated: string;
+  // Tool suite fields
+  toolSuite?: boolean; // true if this is a multi-action tool suite
+  actions?: string[]; // Available actions for suites (e.g., ["get", "add", "complete"])
+  icon?: string; // Icon filename (e.g., "google_tasks.svg")
 }
 
 export type InstallStep = 'variables' | 'credentials' | 'installing' | 'complete' | 'error';
