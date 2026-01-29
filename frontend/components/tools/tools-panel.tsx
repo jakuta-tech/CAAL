@@ -26,8 +26,10 @@ export function ToolsPanel({ isOpen, onClose }: ToolsPanelProps) {
     error,
     selectedCategory,
     searchQuery,
+    sortBy,
     setCategory,
     setSearch,
+    setSortBy,
     refresh,
   } = useToolRegistry();
 
@@ -163,20 +165,35 @@ export function ToolsPanel({ isOpen, onClose }: ToolsPanelProps) {
           {/* Search and filter (for browse view) */}
           {currentView === 'browse' && (
             <div className="space-y-3 px-6 py-4">
-              {/* Search input */}
-              <div className="group relative">
-                <MagnifyingGlass className="text-muted-foreground group-focus-within:text-primary absolute top-1/2 left-4 z-10 h-5 w-5 -translate-y-1/2 transition-colors" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search for tools, services or categories..."
-                  className="text-foreground placeholder:text-muted-foreground focus:ring-primary w-full border-none py-3 pr-4 pl-12 text-sm transition-all focus:ring-2 focus:outline-none"
-                  style={{
-                    background: 'rgb(from var(--surface-2) r g b / 0.5)',
-                    borderRadius: '0.75rem',
-                  }}
-                />
+              {/* Search and sort row */}
+              <div className="flex gap-3">
+                {/* Search input */}
+                <div className="group relative flex-1">
+                  <MagnifyingGlass className="text-muted-foreground group-focus-within:text-primary absolute top-1/2 left-4 z-10 h-5 w-5 -translate-y-1/2 transition-colors" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search tools..."
+                    className="text-foreground placeholder:text-muted-foreground focus:ring-primary w-full border-none py-3 pr-4 pl-12 text-sm transition-all focus:ring-2 focus:outline-none"
+                    style={{
+                      background: 'rgb(from var(--surface-2) r g b / 0.5)',
+                      borderRadius: '0.75rem',
+                    }}
+                  />
+                </div>
+
+                {/* Sort selector */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="select-field text-foreground w-48 shrink-0 py-3 px-3 text-sm"
+                >
+                  <option value="alphabetical">A → Z</option>
+                  <option value="alphabetical-desc">Z → A</option>
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                </select>
               </div>
 
               {/* Category filter */}

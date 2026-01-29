@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { ToolIndexEntry } from '@/types/tools';
 
+export type SortOption = 'alphabetical' | 'alphabetical-desc' | 'newest' | 'oldest';
+
 interface UseToolRegistryReturn {
   tools: ToolIndexEntry[];
   filteredTools: ToolIndexEntry[];
@@ -8,8 +10,10 @@ interface UseToolRegistryReturn {
   error: string | null;
   selectedCategory: string | null;
   searchQuery: string;
+  sortBy: SortOption;
   setCategory: (category: string | null) => void;
   setSearch: (query: string) => void;
+  setSortBy: (sort: SortOption) => void;
   refresh: () => Promise<void>;
 }
 
@@ -19,6 +23,7 @@ export function useToolRegistry(): UseToolRegistryReturn {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('alphabetical');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -63,8 +68,25 @@ export function useToolRegistry(): UseToolRegistryReturn {
       );
     }
 
-    return result;
-  }, [tools, selectedCategory, searchQuery]);
+    // Sort
+    const sorted = [...result];
+    switch (sortBy) {
+      case 'alphabetical':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'alphabetical-desc':
+        sorted.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'newest':
+        sorted.sort((a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime());
+        break;
+      case 'oldest':
+        sorted.sort((a, b) => new Date(a.updated).getTime() - new Date(b.updated).getTime());
+        break;
+    }
+
+    return sorted;
+  }, [tools, selectedCategory, searchQuery, sortBy]);
 
   const setCategory = useCallback((category: string | null) => {
     setSelectedCategory(category);
@@ -74,6 +96,10 @@ export function useToolRegistry(): UseToolRegistryReturn {
     setSearchQuery(query);
   }, []);
 
+  const setSortByCallback = useCallback((sort: SortOption) => {
+    setSortBy(sort);
+  }, []);
+
   return {
     tools,
     filteredTools,
@@ -81,8 +107,10 @@ export function useToolRegistry(): UseToolRegistryReturn {
     error,
     selectedCategory,
     searchQuery,
+    sortBy,
     setCategory,
     setSearch,
+    setSortBy: setSortByCallback,
     refresh,
   };
 }
