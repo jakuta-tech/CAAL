@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import {
   Check,
   CircleHalf,
@@ -12,8 +14,6 @@ import {
   Sun,
   X,
 } from '@phosphor-icons/react/dist/ssr';
-import { toast } from 'sonner';
-import { useTranslations } from 'next-intl';
 import { Button } from '@/components/livekit/button';
 import { saveThemeToCache } from '@/hooks/useCaalTheme';
 import { type ThemeName, generateThemeCSS, getTheme } from '@/lib/theme';
