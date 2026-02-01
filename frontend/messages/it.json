@@ -1,0 +1,232 @@
+{
+  "Common": {
+    "save": "Salva",
+    "saving": "Salvataggio...",
+    "loading": "Caricamento...",
+    "test": "Testa",
+    "back": "Indietro",
+    "continue": "Continua",
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "retry": "Riprova",
+    "enabled": "Attivo",
+    "disabled": "Disattivo",
+    "settings": "Impostazioni",
+    "tools": "Strumenti",
+    "connected": "Connesso"
+  },
+  "Welcome": {
+    "subtitle": "Chatta in diretta con il tuo assistente vocale IA",
+    "start": "Inizia"
+  },
+  "Settings": {
+    "title": "Impostazioni",
+    "tabs": {
+      "agent": "Agente",
+      "prompt": "Prompt",
+      "providers": "Fornitori",
+      "llm": "Impostazioni LLM",
+      "integrations": "Integrazioni",
+      "wake": "Parola di attivazione"
+    },
+    "language": {
+      "label": "Lingua",
+      "description": "Scegli la tua lingua preferita",
+      "updated": "Lingua aggiornata"
+    },
+    "theme": {
+      "changeTheme": "Cambia tema",
+      "midnight": "Notte",
+      "greySlate": "Ardesia grigia",
+      "light": "Chiaro"
+    },
+    "agent": {
+      "name": "Nome dell'agente",
+      "voice": "Voce",
+      "wakeGreetings": "Messaggi di benvenuto",
+      "wakeGreetingsHint": "uno per riga"
+    },
+    "prompt": {
+      "default": "Predefinito",
+      "custom": "Personalizzato"
+    },
+    "providers": {
+      "llmProvider": "Fornitore LLM",
+      "ttsProvider": "Fornitore TTS",
+      "hostUrl": "URL dell'host",
+      "apiKey": "Chiave API",
+      "model": "Modello",
+      "selectModel": "Seleziona un modello...",
+      "modelsAvailable": "{count} modelli disponibili",
+      "testConnectionToSee": "Testa la connessione per vedere tutti i modelli disponibili",
+      "enterApiKeyToSee": "Inserisci la chiave API e testa per vedere tutti i modelli disponibili",
+      "getApiKeyAt": "Ottieni la tua chiave API su",
+      "sttProvider": "Fornitore STT",
+      "sttProviderNote": "Selezionato automaticamente in base al fornitore LLM.",
+      "speachesLocal": "Speaches (locale)",
+      "groqWhisper": "Groq Whisper",
+      "kokoroDesc": "TTS neurale di alta qualità (richiede il container Kokoro)",
+      "piperDesc": "TTS leggero compatibile CPU con oltre 35 lingue",
+      "aiProvider": "Fornitore IA",
+      "ollamaDesc": "Locale, privato, gratuito",
+      "groqDesc": "Inferenza cloud veloce",
+      "ollamaHost": "Host Ollama",
+      "groqApiKey": "Chiave API Groq",
+      "ollamaSttNote": "Usare Ollama attiva anche il riconoscimento vocale locale tramite Speaches.",
+      "groqSttNote": "Usare Groq attiva anche il riconoscimento vocale cloud veloce tramite Whisper."
+    },
+    "llm": {
+      "temperature": "Temperatura",
+      "precise": "Preciso",
+      "creative": "Creativo",
+      "contextSize": "Dimensione del contesto",
+      "maxTurns": "Turni massimi",
+      "toolCacheSize": "Dimensione cache strumenti",
+      "turnDetection": "Rilevamento del turno",
+      "turnDetectionDesc": "Controlla come l'agente rileva quando hai finito di parlare",
+      "allowInterruptions": "Consenti interruzioni",
+      "allowInterruptionsDesc": "Interrompi l'agente mentre sta parlando",
+      "endpointingDelay": "Ritardo di fine turno",
+      "endpointingDelayDesc": "Tempo di attesa dopo che smetti di parlare prima di rispondere"
+    },
+    "integrations": {
+      "homeAssistant": "Home Assistant",
+      "homeAssistantDesc": "Controlla i tuoi dispositivi di domotica",
+      "n8n": "n8n",
+      "n8nWorkflows": "Workflow n8n",
+      "n8nDesc": "Automazione dei workflow e integrazioni degli strumenti",
+      "longLivedToken": "Token di accesso a lunga durata",
+      "accessToken": "Token di accesso",
+      "connected": "Connesso",
+      "entities": "{count} entità",
+      "mcpNote": "/mcp-server/http verrà aggiunto automaticamente",
+      "mcpToken": "Token MCP",
+      "mcpTokenPlaceholder": "Token di accesso MCP",
+      "mcpTokenHint": "Disponibile in Impostazioni n8n → Server MCP",
+      "n8nApiKeyPlaceholder": "Chiave API n8n (opzionale)",
+      "n8nApiKeyHint": "Necessaria per installare strumenti dal registro strumenti. Creane una in Impostazioni n8n → API.",
+      "optionalNote": "Configura integrazioni opzionali. Puoi aggiungerle o modificarle in seguito nelle Impostazioni."
+    },
+    "wake": {
+      "title": "Parola di attivazione",
+      "description": "Attiva l'agente con una frase di attivazione",
+      "enable": "Abilita la parola di attivazione",
+      "model": "Modello della parola di attivazione",
+      "threshold": "Soglia",
+      "silenceTimeout": "Timeout di silenzio (s)"
+    },
+    "errors": {
+      "loadFailed": "Caricamento delle impostazioni fallito",
+      "saveFailed": "Salvataggio fallito",
+      "savePromptFailed": "Salvataggio del prompt fallito",
+      "connectionFailed": "Connessione fallita",
+      "failedToValidate": "Validazione fallita",
+      "invalidApiKey": "Chiave API non valida"
+    },
+    "status": {
+      "loading": "Caricamento delle impostazioni...",
+      "downloadingVoice": "Download del modello vocale..."
+    },
+    "tts": {
+      "engine": "Motore di sintesi vocale",
+      "kokoroDesc": "TTS neurale di alta qualità accelerato GPU",
+      "piperDesc": "Leggero, compatibile CPU con oltre 35 lingue",
+      "kokoroNote": "Kokoro richiede una GPU per prestazioni ottimali.",
+      "piperNote": "Piper funziona su CPU e supporta molte lingue."
+    }
+  },
+  "Tools": {
+    "panel": {
+      "title": "Strumenti",
+      "subtitle": "Estendi le capacità di CAAL",
+      "browseTab": "Esplora il registro",
+      "installedTab": "Strumenti installati",
+      "searchPlaceholder": "Cerca strumenti...",
+      "installedSearchPlaceholder": "Cerca negli strumenti installati..."
+    },
+    "sort": {
+      "alphabetical": "A → Z",
+      "alphabeticalDesc": "Z → A",
+      "newest": "Più recenti",
+      "oldest": "Più vecchi"
+    },
+    "warnings": {
+      "n8nNotConfigured": "n8n non configurato",
+      "n8nEnablePrompt": "Attiva n8n in Impostazioni → Integrazioni per installare strumenti."
+    },
+    "browse": {
+      "loading": "Caricamento strumenti...",
+      "emptyState": "Nessuno strumento trovato",
+      "clearSearch": "Cancella la ricerca"
+    },
+    "card": {
+      "voiceTriggerLabel": "Prova a dire",
+      "installedBadge": "Installato",
+      "installButton": "Installa strumento",
+      "customBadge": "Personalizzato",
+      "activeLabel": "Attivo",
+      "inactiveLabel": "Inattivo",
+      "shareButton": "Condividi nel registro",
+      "shareButtonShort": "Condividi",
+      "updateButton": "Aggiorna"
+    },
+    "detail": {
+      "loading": "Caricamento dettagli...",
+      "toolSuiteTitle": "Suite di strumenti",
+      "toolSuiteDescription": "Questo strumento multi-azione può eseguire diverse attività correlate.",
+      "voiceTriggersTitle": "Prova a dire",
+      "voiceTriggerFormat": "Hey Cal, {trigger}",
+      "requiredServicesTitle": "Servizi richiesti",
+      "requiredVariablesTitle": "Configurazione richiesta",
+      "exampleLabel": "Esempio:",
+      "requiredCredentialsTitle": "Credenziali n8n richieste",
+      "tagsTitle": "Etichette",
+      "authorTitle": "Autore",
+      "workflowTitle": "Workflow",
+      "openWorkflowButton": "Apri in n8n",
+      "n8nDisabledMessage": "Attiva n8n nelle Impostazioni per installare strumenti",
+      "updateButton": "Aggiorna alla v{version}",
+      "installButton": "Installa strumento"
+    },
+    "install": {
+      "loading": "Caricamento dettagli dello strumento...",
+      "variablesIntro": "Inserisci i valori di configurazione per questo strumento:",
+      "credentialsIntro": "Questo strumento richiede credenziali n8n. Inserisci il nome esatto di ogni credenziale come appare nella tua istanza n8n.",
+      "credentialTypeLabel": "Tipo:",
+      "credentialPlaceholder": "Inserisci il nome della credenziale n8n",
+      "submitButton": "Installa",
+      "installing": "Installazione dello strumento in n8n...",
+      "successTitle": "Strumento installato!",
+      "successMessage": "{tool} è ora disponibile.",
+      "successVoiceTriggersLabel": "Prova a dire:",
+      "errorTitle": "Installazione fallita",
+      "modalTitle": "Installa {tool}"
+    },
+    "installed": {
+      "n8nDisabled": "n8n non è attivato. Configura n8n nelle Impostazioni per vedere gli strumenti installati.",
+      "loading": "Caricamento strumenti installati...",
+      "emptyState": "Nessun workflow installato in n8n",
+      "noSearchResults": "Nessuno strumento corrisponde a \"{query}\""
+    },
+    "reload": {
+      "tooltip": "Ricarica strumenti"
+    },
+    "status": {
+      "initialTooltip": "Stato dello strumento",
+      "toolUsedTooltip": "Strumento: {names}",
+      "noToolTooltip": "Nessuno strumento usato",
+      "waitingAriaLabel": "Stato dello strumento: in attesa di risposta",
+      "toolDetailsAriaLabel": "Strumento usato: {names}. Clicca per i dettagli.",
+      "noToolAriaLabel": "Nessuno strumento chiamato — risposta generata dal modello",
+      "parametersTitle": "Parametri dello strumento"
+    }
+  },
+  "Setup": {
+    "welcome": "Benvenuto su CAAL",
+    "stepOf": "Passaggio {current} di {total}",
+    "step1Title": "Scegli il tuo fornitore IA",
+    "step2Title": "Scegli la tua voce",
+    "step3Title": "Configura le integrazioni",
+    "finishSetup": "Completa la configurazione"
+  }
+}

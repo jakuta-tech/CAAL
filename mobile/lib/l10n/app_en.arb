@@ -232,6 +232,9 @@
   "languageFrench": "Francais",
   "@languageFrench": { "description": "French option" },
 
+  "languageItalian": "Italiano",
+  "@languageItalian": { "description": "Italian option" },
+
   "changesNote": "Note: Model, context size, and wake word changes take effect on next session.",
   "@changesNote": { "description": "Settings note" },
 

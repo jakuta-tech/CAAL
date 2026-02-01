@@ -742,6 +742,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   items: [
                     DropdownMenuItem(value: 'en', child: Text(l10n.languageEnglish)),
                     DropdownMenuItem(value: 'fr', child: Text(l10n.languageFrench)),
+                    DropdownMenuItem(value: 'it', child: Text(l10n.languageItalian)),
                   ],
                   onChanged: (value) async {
                     if (value != null) {

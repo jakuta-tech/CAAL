@@ -115,6 +115,7 @@ Always prefer using tools to answer questions when possible.
 const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
+  { code: 'it', label: 'Italiano' },
 ] as const;
 
 // =============================================================================
@@ -522,6 +523,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       if (newTtsProvider === 'piper') {
         const piperModels: Record<string, string> = {
           fr: 'speaches-ai/piper-fr_FR-siwis-medium',
+          it: 'speaches-ai/piper-it_IT-paola-medium',
         };
         const modelId = piperModels[newLocale];
         if (modelId) {

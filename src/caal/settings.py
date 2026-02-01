@@ -38,7 +38,7 @@ DEFAULT_SETTINGS = {
     "agent_name": "Cal",
     "prompt": "default",  # "default" | "custom"
     # Language setting
-    "language": "en",  # ISO 639-1: "en" | "fr"
+    "language": "en",  # ISO 639-1: "en" | "fr" | "it"
     # Provider settings (UI sets both together, but stored separately for power users)
     "stt_provider": "speaches",  # "speaches" | "groq"
     "llm_provider": "ollama",  # "ollama" | "groq"
@@ -81,6 +81,7 @@ DEFAULT_SETTINGS = {
 PIPER_VOICE_MAP: dict[str, str] = {
     "en": "speaches-ai/piper-en_US-ryan-high",
     "fr": "speaches-ai/piper-fr_FR-siwis-medium",
+    "it": "speaches-ai/piper-it_IT-paola-medium",
 }
 
 # Keys that should never be returned via API (security)
@@ -416,6 +417,12 @@ def load_prompt_with_context(
         date_context = (
             f"Nous sommes le {format_date_speech_friendly(now, language='fr')}. "
             f"Il est {format_time_speech_friendly(now, language='fr')}, "
+            f"{timezone_display}."
+        )
+    elif language == "it":
+        date_context = (
+            f"Oggi è {format_date_speech_friendly(now, language='it')}. "
+            f"Sono le {format_time_speech_friendly(now, language='it')}, "
             f"{timezone_display}."
         )
     else:

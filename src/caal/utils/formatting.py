@@ -87,6 +87,8 @@ def format_date_speech_friendly(dt: datetime, language: str = "en") -> str:
     """
     if language == "fr":
         return _format_date_french(dt)
+    if language == "it":
+        return _format_date_italian(dt)
 
     # English (default)
     day_name = dt.strftime('%A')
@@ -134,6 +136,8 @@ def format_time_speech_friendly(dt: datetime, language: str = "en") -> str:
     """
     if language == "fr":
         return _format_time_french(dt)
+    if language == "it":
+        return _format_time_italian(dt)
 
     # English (default)
     hour = dt.hour
@@ -182,3 +186,47 @@ def _format_time_french(dt: datetime) -> str:
         return f"{hour} heures"
     else:
         return f"{hour} heures {minute}"
+
+
+def _format_date_italian(dt: datetime) -> str:
+    """Format a date in Italian speech-friendly style.
+
+    Italian dates use cardinal numbers except "primo" for the 1st.
+    Format: "lunedì 2 febbraio 2026" or "lunedì primo gennaio 2026"
+    """
+    it_days = [
+        "lunedì", "martedì", "mercoledì", "giovedì",
+        "venerdì", "sabato", "domenica",
+    ]
+    it_months = [
+        "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+        "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
+    ]
+
+    day_name = it_days[dt.weekday()]
+    month_name = it_months[dt.month - 1]
+    day_number = "primo" if dt.day == 1 else str(dt.day)
+
+    return f"{day_name} {day_number} {month_name} {dt.year}"
+
+
+def _format_time_italian(dt: datetime) -> str:
+    """Format a time in Italian speech-friendly style.
+
+    Uses 24-hour clock with "e" for minutes.
+    Examples: "15 e 30", "15", "mezzogiorno", "mezzanotte"
+    """
+    hour = dt.hour
+    minute = dt.minute
+
+    # Special cases
+    if hour == 0 and minute == 0:
+        return "mezzanotte"
+    if hour == 12 and minute == 0:
+        return "mezzogiorno"
+
+    # 24-hour format
+    if minute == 0:
+        return f"{hour}"
+    else:
+        return f"{hour} e {minute}"

@@ -7,10 +7,12 @@ import { Globe } from '@phosphor-icons/react/dist/ssr';
 const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
+  { code: 'it', label: 'Italiano' },
 ] as const;
 
 const PIPER_MODELS: Record<string, string> = {
   fr: 'speaches-ai/piper-fr_FR-siwis-medium',
+  it: 'speaches-ai/piper-it_IT-paola-medium',
 };
 
 interface LanguageSelectorProps {
@@ -59,7 +61,9 @@ export function LanguageSelector({ onSelect }: LanguageSelectorProps) {
 
         <div className="text-center">
           <h2 className="text-lg font-semibold">Choose your language</h2>
-          <p className="text-muted-foreground text-sm">Choisissez votre langue</p>
+          <p className="text-muted-foreground text-sm">
+            Choisissez votre langue / Scegli la tua lingua
+          </p>
         </div>
 
         <select
