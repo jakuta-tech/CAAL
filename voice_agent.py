@@ -106,42 +106,13 @@ PIPER_VOICE_MAP = {
     "fr": "speaches-ai/piper-fr_FR-siwis-medium",
 }
 
-DEFAULT_WAKE_GREETINGS = {
-    "en": [
-        "Hey, what's up?",
-        "Hi there!",
-        "Yeah?",
-        "What can I do for you?",
-        "Hey!",
-        "Yo!",
-        "What's up?",
-    ],
-    "fr": [
-        "Salut, quoi de neuf ?",
-        "Bonjour !",
-        "Oui ?",
-        "Qu'est-ce que je peux faire pour toi ?",
-        "Salut !",
-        "Yo !",
-        "Quoi de neuf ?",
-    ],
-}
-
 # Import settings module for runtime-configurable values
 from caal import settings as settings_module  # noqa: E402
 
 
 def get_wake_greetings(language: str) -> list[str]:
-    """Get wake greetings: user's custom ones, or language-specific defaults.
-
-    If the user has customized their greetings (different from English defaults),
-    those are used regardless of language. Otherwise, returns the defaults for
-    the given language code.
-    """
-    user_greetings = settings_module.load_user_settings().get("wake_greetings")
-    if user_greetings is not None and user_greetings != DEFAULT_WAKE_GREETINGS["en"]:
-        return user_greetings
-    return DEFAULT_WAKE_GREETINGS.get(language, DEFAULT_WAKE_GREETINGS["en"])
+    """Get wake greetings from file for the given language."""
+    return settings_module.load_greetings(language)
 
 
 def get_runtime_settings() -> dict:

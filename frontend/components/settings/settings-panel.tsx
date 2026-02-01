@@ -25,7 +25,6 @@ import { type ThemeName, generateThemeCSS, getTheme } from '@/lib/theme';
 interface Settings {
   agent_name: string;
   prompt: string;
-  wake_greetings: string[];
   // General
   theme: 'midnight' | 'greySlate' | 'light';
   // Providers
@@ -73,7 +72,6 @@ type TabId = 'agent' | 'prompt' | 'providers' | 'llm' | 'integrations';
 const DEFAULT_SETTINGS: Settings = {
   agent_name: 'Cal',
   prompt: 'default',
-  wake_greetings: ["Hey, what's up?", "What's up?", 'How can I help?'],
   theme: 'midnight',
   llm_provider: 'ollama',
   ollama_host: 'http://localhost:11434',
@@ -119,19 +117,6 @@ const LANGUAGES = [
   { code: 'fr', label: 'Français' },
 ] as const;
 
-// Mirror of voice_agent.py DEFAULT_WAKE_GREETINGS — shown as placeholder
-// when the user hasn't customized greetings (empty array in settings)
-const DEFAULT_WAKE_GREETINGS: Record<string, string[]> = {
-  en: ["Hey, what's up?", 'Hi there!', 'Yeah?', 'What can I do for you?', 'Hey!', "What's up?"],
-  fr: [
-    'Salut, quoi de neuf ?',
-    'Bonjour !',
-    'Oui ?',
-    "Qu'est-ce que je peux faire pour toi ?",
-    'Salut !',
-  ],
-};
-
 // =============================================================================
 // Component
 // =============================================================================
@@ -147,6 +132,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const themeButtonRef = useRef<HTMLButtonElement>(null);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [promptContent, setPromptContent] = useState('');
+  const [greetingsContent, setGreetingsContent] = useState('');
   const [voices, setVoices] = useState<string[]>([]);
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [groqModels, setGroqModels] = useState<string[]>([]);
@@ -208,6 +194,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       // First load settings to get the correct tts_provider
       const settingsRes = await fetch('/api/settings');
       let ttsProvider = 'kokoro';
+      let lang = 'en';
 
       if (settingsRes.ok) {
         const data = await settingsRes.json();
@@ -221,15 +208,17 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         }
         setPromptContent(data.prompt_content || DEFAULT_PROMPT);
         ttsProvider = loadedSettings.tts_provider || 'kokoro';
+        lang = loadedSettings.language || 'en';
       } else {
         setSettings(DEFAULT_SETTINGS);
         setPromptContent(DEFAULT_PROMPT);
       }
 
-      // Now fetch voices with correct provider, plus wake word models
-      const [voicesRes, wakeWordModelsRes] = await Promise.all([
+      // Now fetch voices, wake word models, and greetings in parallel
+      const [voicesRes, wakeWordModelsRes, greetingsRes] = await Promise.all([
         fetch(`/api/voices?provider=${ttsProvider}`),
         fetch('/api/wake-word/models'),
+        fetch(`/api/greetings?language=${lang}`),
       ]);
 
       if (voicesRes.ok) {
@@ -240,6 +229,11 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       if (wakeWordModelsRes.ok) {
         const data = await wakeWordModelsRes.json();
         setWakeWordModels(data.models || []);
+      }
+
+      if (greetingsRes.ok) {
+        const data = await greetingsRes.json();
+        setGreetingsContent(data.content || '');
       }
     } catch (err) {
       console.error('Error loading settings:', err);
@@ -411,11 +405,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     setError(null);
 
     try {
-      // Transform n8n URL and filter empty wake greetings
+      // Transform n8n URL
       const finalSettings = {
         ...settings,
         n8n_url: settings.n8n_enabled ? getN8nMcpUrl(settings.n8n_url) : settings.n8n_url,
-        wake_greetings: settings.wake_greetings.filter((g) => g.trim()),
       };
 
       // Save settings
@@ -440,6 +433,17 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         if (!promptRes.ok) {
           throw new Error(t('errors.savePromptFailed'));
         }
+      }
+
+      // Save greetings to file
+      const greetingsRes = await fetch('/api/greetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: settings.language || 'en', content: greetingsContent }),
+      });
+
+      if (!greetingsRes.ok) {
+        throw new Error(t('errors.saveFailed'));
       }
 
       // Download Piper model if using Piper
@@ -474,10 +478,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   };
 
   const handleWakeGreetingsChange = (value: string) => {
-    // Keep empty lines while editing so Enter key works
-    // Empty lines are filtered out when saving
-    const greetings = value.split('\n');
-    setSettings({ ...settings, wake_greetings: greetings });
+    setGreetingsContent(value);
   };
 
   const handleTtsProviderChange = async (provider: 'kokoro' | 'piper') => {
@@ -509,8 +510,6 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       ...settings,
       language: newLocale,
       tts_provider: newTtsProvider,
-      // Reset wake greetings to let runtime pick language-appropriate defaults
-      wake_greetings: [],
     };
     try {
       await fetch('/api/settings', {
@@ -763,11 +762,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 </span>
               </label>
               <textarea
-                value={settings.wake_greetings.join('\n')}
+                value={greetingsContent}
                 onChange={(e) => handleWakeGreetingsChange(e.target.value)}
-                placeholder={(
-                  DEFAULT_WAKE_GREETINGS[settings.language] || DEFAULT_WAKE_GREETINGS.en
-                ).join('\n')}
                 rows={4}
                 className="textarea-field text-foreground w-full px-4 py-3 text-sm"
               />

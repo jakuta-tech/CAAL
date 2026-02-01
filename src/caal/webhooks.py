@@ -372,6 +372,20 @@ class PromptUpdateRequest(BaseModel):
     content: str
 
 
+class GreetingsResponse(BaseModel):
+    """Response body for /greetings endpoint."""
+
+    language: str
+    content: str  # Raw text, one greeting per line
+
+
+class GreetingsUpdateRequest(BaseModel):
+    """Request body for POST /greetings endpoint."""
+
+    language: str
+    content: str
+
+
 class VoicesResponse(BaseModel):
     """Response body for /voices endpoint."""
 
@@ -397,6 +411,9 @@ async def get_settings() -> SettingsResponse:
     prompt_content = settings_module.load_prompt_content(language=language)
     custom_exists = settings_module.custom_prompt_exists()
 
+    # Inject greetings from file for backward compat (mobile reads this field)
+    settings["wake_greetings"] = settings_module.load_greetings(language)
+
     return SettingsResponse(
         settings=settings,
         prompt_content=prompt_content,
@@ -416,6 +433,9 @@ async def update_settings(req: SettingsUpdateRequest) -> SettingsResponse:
     """
     # Load current settings
     current = settings_module.load_settings()
+
+    # Ignore wake_greetings — now managed via /greetings endpoint (file-based)
+    req.settings.pop("wake_greetings", None)
 
     # Secret fields that should not be overwritten with empty values
     # (UI doesn't show these, so saving would clear them)
@@ -441,6 +461,9 @@ async def update_settings(req: SettingsUpdateRequest) -> SettingsResponse:
     language = settings.get("language", "en")
     prompt_content = settings_module.load_prompt_content(language=language)
     custom_exists = settings_module.custom_prompt_exists()
+
+    # Inject greetings from file for backward compat
+    settings["wake_greetings"] = settings_module.load_greetings(language)
 
     logger.info(f"Settings updated: {list(req.settings.keys())}")
 
@@ -494,6 +517,41 @@ async def save_prompt(req: PromptUpdateRequest) -> PromptResponse:
         prompt="custom",
         content=req.content,
         is_custom=True,
+    )
+
+
+@app.get("/greetings", response_model=GreetingsResponse)
+async def get_greetings(language: str = "en") -> GreetingsResponse:
+    """Get wake greetings for a language.
+
+    Args:
+        language: ISO 639-1 language code (default "en")
+
+    Returns:
+        GreetingsResponse with language and content (one greeting per line)
+    """
+    greetings = settings_module.load_greetings(language)
+    return GreetingsResponse(
+        language=language,
+        content="\n".join(greetings),
+    )
+
+
+@app.post("/greetings", response_model=GreetingsResponse)
+async def save_greetings(req: GreetingsUpdateRequest) -> GreetingsResponse:
+    """Save wake greetings for a language.
+
+    Args:
+        req: GreetingsUpdateRequest with language and content
+
+    Returns:
+        GreetingsResponse with saved data
+    """
+    settings_module.save_greetings(req.language, req.content)
+    logger.info(f"Greetings saved for language: {req.language}")
+    return GreetingsResponse(
+        language=req.language,
+        content=req.content,
     )
 
 

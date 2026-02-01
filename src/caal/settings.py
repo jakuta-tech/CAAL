@@ -37,15 +37,6 @@ DEFAULT_SETTINGS = {
     # Agent identity
     "agent_name": "Cal",
     "prompt": "default",  # "default" | "custom"
-    "wake_greetings": [
-        "Hey, what's up?",
-        "Hi there!",
-        "Yeah?",
-        "What can I do for you?",
-        "Hey!",
-        "Yo!",
-        "What's up?",
-    ],
     # Language setting
     "language": "en",  # ISO 639-1: "en" | "fr"
     # Provider settings (UI sets both together, but stored separately for power users)
@@ -335,6 +326,55 @@ def save_custom_prompt(content: str) -> None:
         logger.info(f"Saved custom prompt to {prompt_path}")
     except Exception as e:
         logger.error(f"Failed to save custom prompt: {e}")
+        raise
+
+
+def load_greetings(language: str = "en") -> list[str]:
+    """Load wake greetings from file.
+
+    Reads prompt/{language}/greetings.txt (one greeting per line).
+    Falls back to English if the language file doesn't exist.
+    Always returns at least one greeting to prevent random.choice([]) crash.
+
+    Args:
+        language: ISO 639-1 language code ("en", "fr", etc.)
+
+    Returns:
+        List of greeting strings, guaranteed non-empty.
+    """
+    lang_path = PROMPT_DIR / language / "greetings.txt"
+    fallback_path = PROMPT_DIR / "en" / "greetings.txt"
+
+    for path in [lang_path, fallback_path]:
+        if path.exists():
+            try:
+                lines = path.read_text().strip().splitlines()
+                greetings = [line.strip() for line in lines if line.strip()]
+                if greetings:
+                    return greetings
+            except Exception as e:
+                logger.error(f"Failed to load greetings from {path}: {e}")
+
+    # Ultimate fallback — never return empty list
+    return ["Hey!"]
+
+
+def save_greetings(language: str, content: str) -> None:
+    """Save wake greetings to file.
+
+    Writes to prompt/{language}/greetings.txt, creating the directory if needed.
+
+    Args:
+        language: ISO 639-1 language code
+        content: Greetings text, one per line
+    """
+    greetings_path = PROMPT_DIR / language / "greetings.txt"
+    try:
+        greetings_path.parent.mkdir(parents=True, exist_ok=True)
+        greetings_path.write_text(content)
+        logger.info(f"Saved greetings to {greetings_path}")
+    except Exception as e:
+        logger.error(f"Failed to save greetings: {e}")
         raise
 
 
