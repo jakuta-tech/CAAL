@@ -181,7 +181,6 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   });
 
   const t = useTranslations('Settings');
-  const tCommon = useTranslations('Common');
 
   // ---------------------------------------------------------------------------
   // Load settings
