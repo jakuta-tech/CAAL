@@ -735,7 +735,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildCard([
                 _buildLabel(l10n.language),
                 DropdownButtonFormField<String>(
-                  initialValue: context.watch<LocaleProvider>().locale.languageCode,
+                  value: context.watch<LocaleProvider>().locale.languageCode,
                   style: const TextStyle(color: Colors.white),
                   dropdownColor: const Color(0xFF2A2A2A),
                   decoration: _inputDecoration(),

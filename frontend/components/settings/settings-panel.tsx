@@ -12,6 +12,8 @@ import {
   Sun,
   X,
 } from '@phosphor-icons/react/dist/ssr';
+import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/livekit/button';
 import { saveThemeToCache } from '@/hooks/useCaalTheme';
 import { type ThemeName, generateThemeCSS, getTheme } from '@/lib/theme';
@@ -112,6 +114,11 @@ You are a helpful, conversational voice assistant.
 Always prefer using tools to answer questions when possible.
 `;
 
+const LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'fr', label: 'Français' },
+] as const;
+
 const TABS: { id: TabId; label: string }[] = [
   { id: 'agent', label: 'Agent' },
   { id: 'prompt', label: 'Prompt' },
@@ -172,6 +179,9 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     error: null,
     info: null,
   });
+
+  const t = useTranslations('Settings');
+  const tCommon = useTranslations('Common');
 
   // ---------------------------------------------------------------------------
   // Load settings
@@ -470,6 +480,22 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     setSettings({ ...settings, tts_voice_piper: voice });
   };
 
+  const handleLanguageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLocale = e.target.value;
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: { ...settings, language: newLocale } }),
+      });
+      document.cookie = `CAAL_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+      toast.success(t('language.updated'));
+      setTimeout(() => window.location.reload(), 500);
+    } catch {
+      toast.error(t('errors.saveFailed'));
+    }
+  };
+
   // ---------------------------------------------------------------------------
   // Render helpers
   // ---------------------------------------------------------------------------
@@ -542,6 +568,25 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   const renderAgentTab = () => (
     <div className="space-y-6">
+      {/* Language */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-[var(--text-secondary)]">
+          {t('language.label')}
+        </label>
+        <select
+          value={settings.language || 'en'}
+          onChange={handleLanguageChange}
+          className="w-full rounded-md border border-[var(--border-primary)] bg-[var(--surface-1)] px-3 py-2 text-sm text-[var(--text-primary)]"
+        >
+          {LANGUAGES.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-[10px] text-[var(--text-muted)]">{t('language.description')}</p>
+      </div>
+
       <div className="space-y-2">
         <label className="text-sm font-medium">Agent Name</label>
         <input

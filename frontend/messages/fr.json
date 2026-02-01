@@ -10,27 +10,28 @@
     "close": "Fermer",
     "enabled": "Actif",
     "disabled": "Inactif",
-    "settings": "Parametres",
-    "connected": "Connecte"
+    "settings": "Paramètres",
+    "tools": "Outils",
+    "connected": "Connecté"
   },
   "Welcome": {
     "subtitle": "Discutez en direct avec votre assistant vocal IA",
-    "start": "Demarrer"
+    "start": "Démarrer"
   },
   "Settings": {
-    "title": "Parametres",
+    "title": "Paramètres",
     "tabs": {
       "agent": "Agent",
       "prompt": "Prompt",
       "providers": "Fournisseurs",
-      "llm": "Parametres LLM",
-      "integrations": "Integrations",
+      "llm": "Paramètres LLM",
+      "integrations": "Intégrations",
       "wake": "Mot d'activation"
     },
     "language": {
       "label": "Langue",
-      "description": "Choisissez votre langue preferee",
-      "updated": "Langue mise a jour"
+      "description": "Choisissez votre langue préférée",
+      "updated": "Langue mise à jour"
     },
     "agent": {
       "name": "Nom de l'agent",
@@ -39,90 +40,90 @@
       "wakeGreetingsHint": "un par ligne"
     },
     "prompt": {
-      "default": "Par defaut",
-      "custom": "Personnalise"
+      "default": "Par défaut",
+      "custom": "Personnalisé"
     },
     "providers": {
       "llmProvider": "Fournisseur LLM",
       "ttsProvider": "Fournisseur TTS",
-      "hostUrl": "URL de l'hote",
-      "apiKey": "Cle API",
-      "model": "Modele",
-      "selectModel": "Selectionner un modele...",
-      "modelsAvailable": "{count} modeles disponibles",
-      "testConnectionToSee": "Testez la connexion pour voir tous les modeles disponibles",
-      "enterApiKeyToSee": "Entrez la cle API et testez pour voir tous les modeles disponibles",
-      "getApiKeyAt": "Obtenez votre cle API sur",
+      "hostUrl": "URL de l'hôte",
+      "apiKey": "Clé API",
+      "model": "Modèle",
+      "selectModel": "Sélectionner un modèle...",
+      "modelsAvailable": "{count} modèles disponibles",
+      "testConnectionToSee": "Testez la connexion pour voir tous les modèles disponibles",
+      "enterApiKeyToSee": "Entrez la clé API et testez pour voir tous les modèles disponibles",
+      "getApiKeyAt": "Obtenez votre clé API sur",
       "sttProvider": "Fournisseur STT",
-      "sttProviderNote": "Selectionne automatiquement selon le fournisseur LLM.",
+      "sttProviderNote": "Sélectionné automatiquement selon le fournisseur LLM.",
       "speachesLocal": "Speaches (local)",
       "groqWhisper": "Groq Whisper",
-      "kokoroDesc": "TTS neuronal haute qualite (necessite le conteneur Kokoro)",
-      "piperDesc": "TTS leger compatible CPU avec plus de 35 langues",
+      "kokoroDesc": "TTS neuronal haute qualité (nécessite le conteneur Kokoro)",
+      "piperDesc": "TTS léger compatible CPU avec plus de 35 langues",
       "aiProvider": "Fournisseur IA",
-      "ollamaDesc": "Local, prive, gratuit",
-      "groqDesc": "Inference cloud rapide",
-      "ollamaHost": "Hote Ollama",
-      "groqApiKey": "Cle API Groq",
-      "ollamaSttNote": "Utiliser Ollama active egalement la reconnaissance vocale locale via Speaches.",
-      "groqSttNote": "Utiliser Groq active egalement la reconnaissance vocale cloud rapide via Whisper."
+      "ollamaDesc": "Local, privé, gratuit",
+      "groqDesc": "Inférence cloud rapide",
+      "ollamaHost": "Hôte Ollama",
+      "groqApiKey": "Clé API Groq",
+      "ollamaSttNote": "Utiliser Ollama active également la reconnaissance vocale locale via Speaches.",
+      "groqSttNote": "Utiliser Groq active également la reconnaissance vocale cloud rapide via Whisper."
     },
     "llm": {
-      "temperature": "Temperature",
-      "precise": "Precis",
-      "creative": "Creatif",
+      "temperature": "Température",
+      "precise": "Précis",
+      "creative": "Créatif",
       "contextSize": "Taille du contexte",
       "maxTurns": "Tours maximum",
       "toolCacheSize": "Taille du cache d'outils",
-      "turnDetection": "Detection de tour",
-      "turnDetectionDesc": "Controle comment l'agent detecte quand vous avez fini de parler",
+      "turnDetection": "Détection de tour",
+      "turnDetectionDesc": "Contrôle comment l'agent détecte quand vous avez fini de parler",
       "allowInterruptions": "Autoriser les interruptions",
       "allowInterruptionsDesc": "Interrompre l'agent pendant qu'il parle",
-      "endpointingDelay": "Delai de fin",
-      "endpointingDelayDesc": "Temps d'attente apres que vous arretez de parler avant de repondre"
+      "endpointingDelay": "Délai de fin",
+      "endpointingDelayDesc": "Temps d'attente après que vous arrêtez de parler avant de répondre"
     },
     "integrations": {
       "homeAssistant": "Home Assistant",
-      "homeAssistantDesc": "Controlez votre maison connectee",
+      "homeAssistantDesc": "Contrôlez votre maison connectée",
       "n8n": "n8n",
       "n8nWorkflows": "Workflows n8n",
-      "n8nDesc": "Connecter des automatisations personnalisees",
-      "longLivedToken": "Jeton d'acces longue duree",
-      "accessToken": "Jeton d'acces",
-      "connected": "Connecte",
-      "entities": "{count} entites",
-      "mcpNote": "/mcp-server/http sera ajoute automatiquement",
-      "optionalNote": "Configurez des integrations optionnelles. Vous pouvez les ajouter ou les modifier plus tard dans les Parametres."
+      "n8nDesc": "Connecter des automatisations personnalisées",
+      "longLivedToken": "Jeton d'accès longue durée",
+      "accessToken": "Jeton d'accès",
+      "connected": "Connecté",
+      "entities": "{count} entités",
+      "mcpNote": "/mcp-server/http sera ajouté automatiquement",
+      "optionalNote": "Configurez des intégrations optionnelles. Vous pouvez les ajouter ou les modifier plus tard dans les Paramètres."
     },
     "wake": {
       "enable": "Activer le mot d'activation",
-      "model": "Modele de mot d'activation",
+      "model": "Modèle de mot d'activation",
       "threshold": "Seuil",
-      "silenceTimeout": "Delai de silence (s)"
+      "silenceTimeout": "Délai de silence (s)"
     },
     "errors": {
-      "loadFailed": "Echec du chargement des parametres",
-      "saveFailed": "Echec de l'enregistrement",
-      "connectionFailed": "Echec de la connexion",
-      "invalidApiKey": "Cle API invalide"
+      "loadFailed": "Échec du chargement des paramètres",
+      "saveFailed": "Échec de l'enregistrement",
+      "connectionFailed": "Échec de la connexion",
+      "invalidApiKey": "Clé API invalide"
     },
     "status": {
-      "downloadingVoice": "Telechargement du modele vocal..."
+      "downloadingVoice": "Téléchargement du modèle vocal..."
     },
     "tts": {
-      "engine": "Moteur de synthese vocale",
-      "kokoroDesc": "TTS neuronal haute qualite accelere GPU",
-      "piperDesc": "Leger, compatible CPU avec plus de 35 langues",
-      "kokoroNote": "Kokoro necessite un GPU pour des performances optimales.",
+      "engine": "Moteur de synthèse vocale",
+      "kokoroDesc": "TTS neuronal haute qualité accéléré GPU",
+      "piperDesc": "Léger, compatible CPU avec plus de 35 langues",
+      "kokoroNote": "Kokoro nécessite un GPU pour des performances optimales.",
       "piperNote": "Piper fonctionne sur CPU et supporte de nombreuses langues."
     }
   },
   "Setup": {
     "welcome": "Bienvenue sur CAAL",
-    "stepOf": "Etape {current} sur {total}",
+    "stepOf": "Étape {current} sur {total}",
     "step1Title": "Choisissez votre fournisseur IA",
     "step2Title": "Choisissez votre voix",
-    "step3Title": "Configurer les integrations",
+    "step3Title": "Configurer les intégrations",
     "finishSetup": "Terminer la configuration"
   }
 }
