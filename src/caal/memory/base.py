@@ -18,8 +18,8 @@ from typing import Any, Literal, TypedDict
 _SCRIPT_DIR = Path(__file__).parent.parent.parent.parent  # src/caal/memory -> project root
 MEMORY_DIR = Path(os.getenv("CAAL_MEMORY_DIR", _SCRIPT_DIR))
 
-# Default TTL for auto-stored data (24 hours)
-DEFAULT_TTL_SECONDS = 86400
+# Default TTL for auto-stored data (7 days)
+DEFAULT_TTL_SECONDS = 604800
 
 # Source types for tracking where memory entries came from
 MemorySource = Literal["tool_hint", "explicit", "api"]

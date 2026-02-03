@@ -556,13 +556,31 @@ async def _execute_tool_calls(
             tool_result = await _execute_single_tool(agent, tool_name, arguments)
 
             # Extract and store memory_hint from tool response (deterministic)
+            # Supports two formats:
+            #   {"memory_hint": {"key": "simple_value"}}  → 7d default TTL
+            #   {"memory_hint": {"key": {"value": "...", "ttl": 3600}}}  → custom TTL
+            #   {"memory_hint": {"key": {"value": "...", "ttl": null}}}  → no expiry
             if short_term_memory and isinstance(tool_result, dict):
                 memory_hint = tool_result.get("memory_hint")
                 if memory_hint and isinstance(memory_hint, dict):
-                    for key, value in memory_hint.items():
+                    from caal.memory.base import DEFAULT_TTL_SECONDS
+
+                    for key, hint_value in memory_hint.items():
+                        # Check if hint_value is extended format with ttl
+                        if isinstance(hint_value, dict) and "value" in hint_value:
+                            actual_value = hint_value["value"]
+                            # "ttl" in dict distinguishes missing (use default) vs null (no expiry)
+                            if "ttl" in hint_value:
+                                ttl = hint_value["ttl"]  # Could be int or None
+                            else:
+                                ttl = DEFAULT_TTL_SECONDS
+                        else:
+                            actual_value = hint_value
+                            ttl = DEFAULT_TTL_SECONDS
                         short_term_memory.store(
                             key=key,
-                            value=value,
+                            value=actual_value,
+                            ttl_seconds=ttl,
                             source="tool_hint",
                         )
                         logger.info(f"Stored memory hint from {tool_name}: {key}")
