@@ -178,6 +178,7 @@ async def llm_node(
                         return
                     break  # No content either, fall through to streaming
 
+
                 # Execute tool calls
                 tool_round += 1
                 logger.info(
