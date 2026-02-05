@@ -219,6 +219,32 @@
       "toolDetailsAriaLabel": "Outil utilisé : {names}. Cliquez pour les détails.",
       "noToolAriaLabel": "Aucun outil appelé — réponse générée par le modèle",
       "parametersTitle": "Paramètres de l'outil"
+    },
+    "share": {
+      "title": "Partager le workflow au registre",
+      "securityTitle": "Tes secrets ne quittent jamais ton réseau",
+      "securityDescription": "La sanitisation se fait localement dans ton navigateur avant l'envoi. Les IDs d'identifiants sont annulés.",
+      "variablesDetected": "Variables détectées (seront paramétrées) :",
+      "credentialsDetected": "Identifiants trouvés et en cours de paramétrage :",
+      "privateUrlsDetected": "URLs de réseau privé (seront paramétrées) :",
+      "submissionFailed": "Échec de l'envoi",
+      "readyToSubmit": "Prêt à envoyer !",
+      "popupBlockedHint": "Complète ton envoi dans le formulaire. Si le popup a été bloqué, clique ci-dessous :",
+      "openFormButton": "Ouvrir le formulaire d'envoi",
+      "preparingSubmission": "Préparation de l'envoi...",
+      "continueButton": "Continuer vers le formulaire d'envoi"
+    },
+    "workflow": {
+      "customToolLabel": "Outil personnalisé",
+      "statusLabel": "Statut",
+      "statusActive": "Actif",
+      "statusInactive": "Inactif",
+      "tagsLabel": "Étiquettes",
+      "createdLabel": "Créé le",
+      "lastUpdatedLabel": "Dernière mise à jour",
+      "n8nWorkflowLabel": "Workflow n8n",
+      "unpublishedInfo": "Cet outil personnalisé n'est pas publié dans le registre d'outils CAAL. Partage-le pour aider les autres à découvrir et utiliser cet outil. Toutes les clés, IDs et URLs privées seront supprimées automatiquement.",
+      "shareButton": "Partager au registre"
     }
   },
   "Setup": {
