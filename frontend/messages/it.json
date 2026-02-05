@@ -219,6 +219,32 @@
       "toolDetailsAriaLabel": "Strumento usato: {names}. Clicca per i dettagli.",
       "noToolAriaLabel": "Nessuno strumento chiamato — risposta generata dal modello",
       "parametersTitle": "Parametri dello strumento"
+    },
+    "share": {
+      "title": "Condividi il workflow nel registro",
+      "securityTitle": "I tuoi segreti non lasciano mai la tua rete",
+      "securityDescription": "La sanitizzazione avviene localmente nel tuo browser prima dell'invio. Gli ID delle credenziali vengono annullati.",
+      "variablesDetected": "Variabili rilevate (saranno parametrizzate):",
+      "credentialsDetected": "Credenziali trovate e in corso di parametrizzazione:",
+      "privateUrlsDetected": "URL di rete privata (saranno parametrizzate):",
+      "submissionFailed": "Invio fallito",
+      "readyToSubmit": "Pronto per l'invio!",
+      "popupBlockedHint": "Completa l'invio nel modulo. Se il popup è stato bloccato, clicca qui sotto:",
+      "openFormButton": "Apri modulo di invio",
+      "preparingSubmission": "Preparazione dell'invio...",
+      "continueButton": "Continua al modulo di invio"
+    },
+    "workflow": {
+      "customToolLabel": "Strumento personalizzato",
+      "statusLabel": "Stato",
+      "statusActive": "Attivo",
+      "statusInactive": "Inattivo",
+      "tagsLabel": "Etichette",
+      "createdLabel": "Creato il",
+      "lastUpdatedLabel": "Ultimo aggiornamento",
+      "n8nWorkflowLabel": "Workflow n8n",
+      "unpublishedInfo": "Questo strumento personalizzato non è pubblicato nel registro strumenti CAAL. Condividilo per aiutare gli altri a scoprire e usare questo strumento. Tutte le chiavi, gli ID e gli URL privati verranno rimossi automaticamente.",
+      "shareButton": "Condividi nel registro"
     }
   },
   "Setup": {
