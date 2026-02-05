@@ -20,6 +20,9 @@
 ### v1.1 Complete Tool Registry i18n
 
 - [ ] **Phase 5: Extract & Add EN Keys** — Internationalize components, add English message keys
+  **Plans:** 1 plan
+  Plans:
+  - [ ] 05-01-PLAN.md — Internationalize both components, add EN message keys
 - [ ] **Phase 6: FR & IT Translations** — Add French and Italian translations
 - [ ] **Phase 7: Quality Verification** — Verify no hardcoded strings, style consistency
 
@@ -92,10 +95,10 @@
 | 2. Frontend i18n | v1.0 | 2/2 | Complete | 2026-01-25 |
 | 3. Mobile i18n | v1.0 | 2/2 | Complete | 2026-01-25 |
 | 4. Voice Pipeline | v1.0 | 2/2 | Complete | 2026-01-26 |
-| 5. Extract & Add EN Keys | v1.1 | 0/? | Pending | — |
+| 5. Extract & Add EN Keys | v1.1 | 0/1 | Planned | — |
 | 6. FR & IT Translations | v1.1 | 0/? | Pending | — |
 | 7. Quality Verification | v1.1 | 0/? | Pending | — |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-05 — v1.1 milestone added*
+*Last updated: 2026-02-05 — Phase 5 planned*
