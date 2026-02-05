@@ -20,7 +20,7 @@
 ### v1.1 Complete Tool Registry i18n
 
 - [x] **Phase 5: Extract & Add EN Keys** — Internationalize components, add English message keys (1/1 plans) — completed 2026-02-05
-- [ ] **Phase 6: FR & IT Translations** — Add French and Italian translations
+- [ ] **Phase 6: FR & IT Translations** — Add French and Italian translations (1 plan)
 - [ ] **Phase 7: Quality Verification** — Verify no hardcoded strings, style consistency
 
 ---
@@ -65,6 +65,9 @@
 4. Technical terms (n8n, credentials, workflow) stay in English
 5. UI displays correctly in FR and IT locales
 
+**Plans:**
+- [ ] 06-01-PLAN.md — Add FR and IT translations for Tools.share.* and Tools.workflow.*
+
 ---
 
 ### Phase 7: Quality Verification
@@ -93,9 +96,9 @@
 | 3. Mobile i18n | v1.0 | 2/2 | Complete | 2026-01-25 |
 | 4. Voice Pipeline | v1.0 | 2/2 | Complete | 2026-01-26 |
 | 5. Extract & Add EN Keys | v1.1 | 1/1 | Complete | 2026-02-05 |
-| 6. FR & IT Translations | v1.1 | 0/? | Pending | — |
+| 6. FR & IT Translations | v1.1 | 0/1 | Pending | — |
 | 7. Quality Verification | v1.1 | 0/? | Pending | — |
 
 ---
 *Roadmap created: 2026-01-25*
-*Last updated: 2026-02-05 — Phase 5 complete*
+*Last updated: 2026-02-05 — Phase 6 planned*
