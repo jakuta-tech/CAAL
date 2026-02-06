@@ -24,9 +24,16 @@ if [ ! -f "$CONFIG_DIR/mcp_servers.json" ]; then
     chown agent:agent "$CONFIG_DIR/mcp_servers.json"
 fi
 
+# registry_cache.json - create empty if missing
+if [ ! -f "$CONFIG_DIR/registry_cache.json" ]; then
+    echo '{}' > "$CONFIG_DIR/registry_cache.json"
+    chown agent:agent "$CONFIG_DIR/registry_cache.json"
+fi
+
 # Create symlinks from /app to config files (for code that expects them in /app)
 ln -sf "$CONFIG_DIR/settings.json" /app/settings.json
 ln -sf "$CONFIG_DIR/mcp_servers.json" /app/mcp_servers.json
+ln -sf "$CONFIG_DIR/registry_cache.json" /app/registry_cache.json
 
 # Drop privileges and execute the main command as agent user
 exec gosu agent "$@"
