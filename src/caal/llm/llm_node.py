@@ -293,13 +293,13 @@ def _build_messages_from_context(
     Message order:
     1. System prompt (always first, never trimmed)
     2. Tool data context (injected from cache)
-    3. Short-term memory context (persistent facts)
+    3. Short-term memory context (awareness hint for tool chaining)
     4. Chat history (sliding window applied)
 
     Args:
         chat_ctx: LiveKit chat context
         tool_data_cache: Cache of recent tool response data
-        short_term_memory: Short-term memory for persistent context
+        short_term_memory: Short-term memory for context awareness
         max_turns: Max conversation turns to keep (1 turn = user + assistant)
     """
     system_prompt = None
