@@ -56,6 +56,7 @@ from caal.integrations import (  # noqa: E402
 )
 from caal.llm import ToolDataCache, llm_node  # noqa: E402
 from caal.stt import WakeWordGatedSTT  # noqa: E402
+from caal.tts.sync_openai_tts import SyncOpenAITTS  # noqa: E402
 
 # Configure logging - LiveKit adds LogQueueHandler to root in worker processes,
 # so we use non-propagating loggers with our own handler to avoid duplicates
@@ -93,9 +94,10 @@ logging.getLogger("livekit.plugins.openai.tts").setLevel(logging.WARNING)
 # Infrastructure config (from .env only - URLs, tokens, etc.)
 SPEACHES_URL = os.getenv("SPEACHES_URL", "http://speaches:8000")
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "Systran/faster-whisper-small")
-KOKORO_URL = os.getenv("KOKORO_URL", "http://kokoro:8880")
-# "kokoro" for Kokoro-FastAPI, "prince-canuma/Kokoro-82M" for mlx-audio
+KOKORO_URL = os.getenv("KOKORO_URL", "http://localhost:8880")
+PIPER_URL = os.getenv("PIPER_URL", SPEACHES_URL)  # Separate URL for Piper TTS
 TTS_MODEL = os.getenv("TTS_MODEL", "kokoro")
+print(f"[TTS Config] KOKORO_URL={KOKORO_URL}, PIPER_URL={PIPER_URL}, TTS_MODEL={TTS_MODEL}")
 OLLAMA_THINK = os.getenv("OLLAMA_THINK", "false").lower() == "true"
 TIMEZONE_ID = os.getenv("TIMEZONE", "America/Los_Angeles")
 TIMEZONE_DISPLAY = os.getenv("TIMEZONE_DISPLAY", "Pacific Time")
@@ -402,6 +404,10 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     # Note: Webhook server is started in background thread at agent startup (main block)
     # This ensures /setup/status is available before users connect
 
+    # Debug: log TTS config in subprocess
+    print(f"[JOB] TTS Config: KOKORO_URL={KOKORO_URL}, TTS_MODEL={TTS_MODEL}")
+    logger.info(f"[JOB] TTS Config: KOKORO_URL={KOKORO_URL}, TTS_MODEL={TTS_MODEL}")
+
     logger.debug(f"Joining room: {ctx.room.name}")
     await ctx.connect()
 
@@ -603,28 +609,34 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     # Create TTS instance based on provider
     tts_provider = runtime["tts_provider"]
 
-    # Auto-switch from Kokoro to Piper for non-English languages
-    # (Kokoro has limited multilingual support)
+    # Auto-switch from Kokoro to Piper for non-English languages when Piper is available
     if tts_provider == "kokoro" and language != "en":
-        logger.warning(
-            f"Kokoro TTS has limited {language} support, auto-switching to Piper"
-        )
-        tts_provider = "piper"
+        # PIPER_URL defaults to SPEACHES_URL; if a dedicated Piper service is configured
+        # (PIPER_URL != KOKORO_URL), Piper is available
+        if PIPER_URL != KOKORO_URL:
+            logger.info(
+                f"Kokoro has limited {language} support, auto-switching to Piper"
+            )
+            tts_provider = "piper"
+        else:
+            logger.info(
+                f"Kokoro TTS with {language} (no Piper service available)"
+            )
 
     if tts_provider == "piper":
         # Select Piper voice based on language, fall back to English
         piper_voice = PIPER_VOICE_MAP.get(language, PIPER_VOICE_MAP["en"])
         tts_instance = openai.TTS(
-            base_url=f"{SPEACHES_URL}/v1",
+            base_url=f"{PIPER_URL}/v1",
             api_key="not-needed",
             model=piper_voice,
             voice="default",  # Ignored by Piper but required by API
         )
     else:
         # Kokoro uses separate model and voice params
-        tts_instance = openai.TTS(
+        # Using SyncOpenAITTS to bypass httpx async issues in LiveKit subprocess
+        tts_instance = SyncOpenAITTS(
             base_url=f"{KOKORO_URL}/v1",
-            api_key="not-needed",
             model=TTS_MODEL,
             voice=runtime["tts_voice_kokoro"],
         )
