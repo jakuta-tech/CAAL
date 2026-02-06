@@ -58,21 +58,21 @@ Plans:
 Plans:
 - [x] 09-01-PLAN.md - Add DEFAULT_SETTINGS keys, URL validation, and webhook extensions
 
-#### Phase 10: Connection Testing Endpoints
+#### Phase 10: Connection Testing Endpoints — COMPLETE
 **Goal**: Users can validate provider configuration before saving settings
 **Depends on**: Phase 9
 **Requirements**: OPENAI-05, OPENAI-06, OPENAI-07, OPENROUTER-02, OPENROUTER-06
 **Success Criteria** (what must be TRUE):
-  1. User can test OpenAI-compatible connection and receives success/failure feedback
-  2. User can test OpenRouter connection and receives success/failure feedback
-  3. System discovers available models from OpenAI-compatible servers via /v1/models
-  4. System fetches available models from OpenRouter API (400+ models)
-  5. User can manually enter model name when auto-discovery fails or is unavailable
-  6. Connection tests validate not just connectivity but streaming and tool calling support
-**Plans**: 1 plan
+  1. ✓ User can test OpenAI-compatible connection and receives success/failure feedback
+  2. ✓ User can test OpenRouter connection and receives success/failure feedback
+  3. ✓ System discovers available models from OpenAI-compatible servers via /v1/models
+  4. ✓ System fetches available models from OpenRouter API (400+ models)
+  5. ✓ User can manually enter model name when auto-discovery fails or is unavailable
+  6. ✓ Connection tests validate not just connectivity but streaming and tool calling support
+**Plans**: 1/1 complete
 
 Plans:
-- [ ] 10-01-PLAN.md - Backend test endpoints and frontend proxy routes
+- [x] 10-01-PLAN.md - Backend test endpoints and frontend proxy routes
 
 #### Phase 11: Setup Wizard Frontend
 **Goal**: First-run users can select and configure both new providers through setup wizard
@@ -116,6 +116,6 @@ Phases execute in numeric order: 8 -> 9 -> 10 -> 11 -> 12
 |-------|-----------|----------------|--------|-----------|
 | 8. Backend Provider Foundation | v1.2 | 3/3 | Complete | 2026-02-05 |
 | 9. Settings Schema Extension | v1.2 | 1/1 | Complete | 2026-02-06 |
-| 10. Connection Testing Endpoints | v1.2 | 0/1 | Planned | - |
+| 10. Connection Testing Endpoints | v1.2 | 1/1 | ✓ Complete | 2026-02-06 |
 | 11. Setup Wizard Frontend | v1.2 | 0/TBD | Not started | - |
 | 12. Settings Panel UI | v1.2 | 0/TBD | Not started | - |

@@ -13,18 +13,18 @@ Requirements for milestone v1.2 — Additional LLM Providers.
 - [x] **OPENAI-02**: User can optionally provide API key for authenticated servers
 - [x] **OPENAI-03**: Agent streams responses from OpenAI-compatible provider
 - [x] **OPENAI-04**: Agent executes tool calls with OpenAI-compatible provider
-- [ ] **OPENAI-05**: User can test connection before saving settings
-- [ ] **OPENAI-06**: System discovers available models via /v1/models endpoint
-- [ ] **OPENAI-07**: User can manually enter model name when discovery unavailable
+- [x] **OPENAI-05**: User can test connection before saving settings
+- [x] **OPENAI-06**: System discovers available models via /v1/models endpoint
+- [x] **OPENAI-07**: User can manually enter model name when discovery unavailable
 
 ### OpenRouter Provider
 
 - [x] **OPENROUTER-01**: User can configure OpenRouter API key
-- [ ] **OPENROUTER-02**: System fetches available models from OpenRouter API
+- [x] **OPENROUTER-02**: System fetches available models from OpenRouter API
 - [ ] **OPENROUTER-03**: User can search/filter models in selection dropdown
 - [x] **OPENROUTER-04**: Agent streams responses from OpenRouter
 - [x] **OPENROUTER-05**: Agent executes tool calls with OpenRouter
-- [ ] **OPENROUTER-06**: User can test connection before saving settings
+- [x] **OPENROUTER-06**: User can test connection before saving settings
 
 ### Frontend - Settings Panel
 
@@ -71,15 +71,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPENAI-02 | Phase 8 | Complete |
 | OPENAI-03 | Phase 8 | Complete |
 | OPENAI-04 | Phase 8 | Complete |
-| OPENAI-05 | Phase 10 | Pending |
-| OPENAI-06 | Phase 10 | Pending |
-| OPENAI-07 | Phase 10 | Pending |
+| OPENAI-05 | Phase 10 | Complete |
+| OPENAI-06 | Phase 10 | Complete |
+| OPENAI-07 | Phase 10 | Complete |
 | OPENROUTER-01 | Phase 8 | Complete |
-| OPENROUTER-02 | Phase 10 | Pending |
+| OPENROUTER-02 | Phase 10 | Complete |
 | OPENROUTER-03 | Phase 12 | Pending |
 | OPENROUTER-04 | Phase 8 | Complete |
 | OPENROUTER-05 | Phase 8 | Complete |
-| OPENROUTER-06 | Phase 10 | Pending |
+| OPENROUTER-06 | Phase 10 | Complete |
 | UI-01 | Phase 12 | Pending |
 | UI-02 | Phase 12 | Pending |
 | UI-03 | Phase 12 | Pending |
@@ -103,4 +103,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2025-02-05*
-*Last updated: 2026-02-05 after Phase 8 completion*
+*Last updated: 2026-02-06 after Phase 10 completion*
