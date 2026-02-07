@@ -154,6 +154,17 @@ class HADeviceCache:
         return best_match if best_score > 0 else None
 
 
+# Domain-aware action remapping: correct common LLM mistakes
+# When LLM sends set_volume for a light, remap to set_brightness, etc.
+DOMAIN_ACTION_REMAP: dict[tuple[str, str], str] = {
+    ("set_volume", "light"): "set_brightness",
+    ("set_volume", "climate"): "set_temperature",
+    ("set_brightness", "media_player"): "set_volume",
+    ("set_brightness", "climate"): "set_temperature",
+    ("set_temperature", "light"): "set_brightness",
+    ("set_temperature", "media_player"): "set_volume",
+}
+
 # Intent mapping: (action, domain) -> (intent_name, extra_args)
 # Domain-specific mappings take priority over generic ones
 INTENT_MAP: dict[tuple[str, str | None], tuple[str, dict]] = {
@@ -298,6 +309,14 @@ def create_hass_tools(
         # Look up device to get domain
         device = device_cache.find_device(target)
         domain = device.domain if device else None
+
+        # Remap mismatched actions based on domain (e.g., set_volume on a light -> set_brightness)
+        if domain:
+            remap_key = (action, domain)
+            if remap_key in DOMAIN_ACTION_REMAP:
+                corrected = DOMAIN_ACTION_REMAP[remap_key]
+                logger.info(f"Remapped {action} -> {corrected} for {domain} domain")
+                action = corrected
 
         # Resolve action to intent
         intent_name, extra_args = _resolve_intent(action, domain)
