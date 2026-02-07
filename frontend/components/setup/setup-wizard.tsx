@@ -10,11 +10,18 @@ import { SttStep } from './stt-step';
 
 export interface SetupData {
   // LLM Provider
-  llm_provider: 'ollama' | 'groq';
+  llm_provider: 'ollama' | 'groq' | 'openai_compatible' | 'openrouter';
   ollama_host: string;
   ollama_model: string;
   groq_api_key: string;
   groq_model: string;
+  // OpenAI-compatible
+  openai_base_url: string;
+  openai_api_key: string;
+  openai_model: string;
+  // OpenRouter
+  openrouter_api_key: string;
+  openrouter_model: string;
   // TTS Provider
   tts_provider: 'kokoro' | 'piper';
   tts_voice_kokoro: string;
@@ -38,6 +45,11 @@ const INITIAL_DATA: SetupData = {
   ollama_model: '',
   groq_api_key: '',
   groq_model: '',
+  openai_base_url: '',
+  openai_api_key: '',
+  openai_model: '',
+  openrouter_api_key: '',
+  openrouter_model: '',
   tts_provider: 'kokoro',
   tts_voice_kokoro: 'am_puck',
   tts_voice_piper: 'speaches-ai/piper-en_US-ryan-high',
@@ -156,10 +168,17 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
   // Check if current step is valid to proceed
   const canProceed = () => {
     if (step === 1) {
-      if (data.llm_provider === 'ollama') {
-        return data.ollama_host && data.ollama_model;
-      } else {
-        return data.groq_api_key && data.groq_model;
+      switch (data.llm_provider) {
+        case 'ollama':
+          return data.ollama_host && data.ollama_model;
+        case 'groq':
+          return data.groq_api_key && data.groq_model;
+        case 'openai_compatible':
+          return data.openai_base_url && data.openai_model;
+        case 'openrouter':
+          return data.openrouter_api_key && data.openrouter_model;
+        default:
+          return false;
       }
     }
     // Step 2 (TTS) - both providers valid if voice selected

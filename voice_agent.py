@@ -56,6 +56,7 @@ from caal.integrations import (  # noqa: E402
 )
 from caal.llm import ToolDataCache, llm_node  # noqa: E402
 from caal.stt import WakeWordGatedSTT  # noqa: E402
+from caal.tts.sync_openai_tts import SyncOpenAITTS  # noqa: E402
 
 # Configure logging - LiveKit adds LogQueueHandler to root in worker processes,
 # so we use non-propagating loggers with our own handler to avoid duplicates
@@ -94,8 +95,9 @@ logging.getLogger("livekit.plugins.openai.tts").setLevel(logging.WARNING)
 SPEACHES_URL = os.getenv("SPEACHES_URL", "http://speaches:8000")
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "Systran/faster-whisper-small")
 KOKORO_URL = os.getenv("KOKORO_URL", "http://kokoro:8880")
-# "kokoro" for Kokoro-FastAPI, "prince-canuma/Kokoro-82M" for mlx-audio
+PIPER_URL = os.getenv("PIPER_URL", SPEACHES_URL)  # Separate URL for Piper TTS
 TTS_MODEL = os.getenv("TTS_MODEL", "kokoro")
+logger.info(f"[TTS Config] KOKORO_URL={KOKORO_URL}, PIPER_URL={PIPER_URL}, TTS_MODEL={TTS_MODEL}")
 OLLAMA_THINK = os.getenv("OLLAMA_THINK", "false").lower() == "true"
 TIMEZONE_ID = os.getenv("TIMEZONE", "America/Los_Angeles")
 TIMEZONE_DISPLAY = os.getenv("TIMEZONE_DISPLAY", "Pacific Time")
@@ -149,6 +151,27 @@ def get_runtime_settings() -> dict:
         "groq_model": (
             user_settings.get("groq_model")
             or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        ),
+        # OpenAI-compatible settings
+        "openai_base_url": (
+            user_settings.get("openai_base_url")
+            or os.getenv("OPENAI_BASE_URL", "http://localhost:8000/v1")
+        ),
+        "openai_api_key": (
+            settings.get("openai_api_key") or os.getenv("OPENAI_API_KEY", "")
+        ),
+        "openai_model": (
+            user_settings.get("openai_model")
+            or os.getenv("OPENAI_MODEL", "")
+        ),
+        # OpenRouter settings
+        "openrouter_api_key": (
+            settings.get("openrouter_api_key")
+            or os.getenv("OPENROUTER_API_KEY", "")
+        ),
+        "openrouter_model": (
+            user_settings.get("openrouter_model")
+            or os.getenv("OPENROUTER_MODEL", "openai/gpt-4")
         ),
         # Shared settings
         "max_turns": settings.get("max_turns", int(os.getenv("OLLAMA_MAX_TURNS", "20"))),
@@ -402,6 +425,9 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     # Note: Webhook server is started in background thread at agent startup (main block)
     # This ensures /setup/status is available before users connect
 
+    # Debug: log TTS config in subprocess
+    logger.info(f"[JOB] TTS Config: KOKORO_URL={KOKORO_URL}, TTS_MODEL={TTS_MODEL}")
+
     logger.debug(f"Joining room: {ctx.room.name}")
     await ctx.connect()
 
@@ -495,14 +521,21 @@ async def entrypoint(ctx: agents.JobContext) -> None:
         logger.info(f"  TTS: Piper ({actual_piper_voice})")
     else:
         logger.info(f"  TTS: Kokoro ({runtime['tts_voice_kokoro']})")
-    if runtime["llm_provider"] == "ollama":
+    llm_provider = runtime["llm_provider"]
+    if llm_provider == "ollama":
         logger.info(
             f"  LLM: Ollama ({runtime['ollama_model']}, "
             f"think={runtime['think']}, num_ctx={runtime['num_ctx']})"
         )
-    else:
+    elif llm_provider == "groq":
+        logger.info(f"  LLM: Groq ({runtime['groq_model']})")
+    elif llm_provider == "openai_compatible":
+        model = runtime.get("openai_model", "?")
+        url = runtime.get("openai_base_url", "?")
+        logger.info(f"  LLM: OpenAI-compatible ({model}, {url})")
+    elif llm_provider == "openrouter":
         logger.info(
-            f"  LLM: Groq ({runtime['groq_model']})"
+            f"  LLM: OpenRouter ({runtime.get('openrouter_model', '?')})"
         )
     logger.info(f"  MCP: {list(mcp_servers.keys()) or 'None'}")
     logger.info(
@@ -603,28 +636,34 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     # Create TTS instance based on provider
     tts_provider = runtime["tts_provider"]
 
-    # Auto-switch from Kokoro to Piper for non-English languages
-    # (Kokoro has limited multilingual support)
+    # Auto-switch from Kokoro to Piper for non-English languages when Piper is available
     if tts_provider == "kokoro" and language != "en":
-        logger.warning(
-            f"Kokoro TTS has limited {language} support, auto-switching to Piper"
-        )
-        tts_provider = "piper"
+        # PIPER_URL defaults to SPEACHES_URL; if a dedicated Piper service is configured
+        # (PIPER_URL != KOKORO_URL), Piper is available
+        if PIPER_URL != KOKORO_URL:
+            logger.info(
+                f"Kokoro has limited {language} support, auto-switching to Piper"
+            )
+            tts_provider = "piper"
+        else:
+            logger.info(
+                f"Kokoro TTS with {language} (no Piper service available)"
+            )
 
     if tts_provider == "piper":
         # Select Piper voice based on language, fall back to English
         piper_voice = PIPER_VOICE_MAP.get(language, PIPER_VOICE_MAP["en"])
         tts_instance = openai.TTS(
-            base_url=f"{SPEACHES_URL}/v1",
+            base_url=f"{PIPER_URL}/v1",
             api_key="not-needed",
             model=piper_voice,
             voice="default",  # Ignored by Piper but required by API
         )
     else:
         # Kokoro uses separate model and voice params
-        tts_instance = openai.TTS(
+        # Using SyncOpenAITTS to bypass httpx async issues in LiveKit subprocess
+        tts_instance = SyncOpenAITTS(
             base_url=f"{KOKORO_URL}/v1",
-            api_key="not-needed",
             model=TTS_MODEL,
             voice=runtime["tts_voice_kokoro"],
         )

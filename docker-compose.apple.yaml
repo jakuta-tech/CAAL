@@ -50,7 +50,7 @@ services:
       - "7881:7881/udp"   # UDP for WebRTC
       - "5349:5349"       # TURN/TLS (only used in HTTPS mode)
       - "30000-30100:30000-30100/udp"  # TURN relay ports
-      - "50000-50100:50000-50100/udp"  # WebRTC media ports
+      - "51000-51100:51000-51100/udp"  # WebRTC media ports
     volumes:
       - ./livekit.yaml:/etc/livekit-lan.yaml:ro
       - ./livekit-tailscale.yaml.template:/etc/livekit.yaml.template:ro
@@ -69,9 +69,30 @@ services:
       start_period: 10s
 
   # ===========================================================================
+  # Speaches - Piper TTS (CPU, ARM64)
+  # ===========================================================================
+  # Provides high-quality French TTS via Piper voices
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:0.9.0-rc.3-cpu
+    container_name: caal-speaches
+    platform: linux/arm64
+    volumes:
+      - speaches-cache:/home/ubuntu/.cache/huggingface
+    networks:
+      - caal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # ===========================================================================
   # CAAL Agent - Voice Processing Pipeline
   # ===========================================================================
-  # Connects to mlx-audio running on host for STT/TTS
+  # STT: mlx-audio on host (Metal-accelerated Whisper)
+  # TTS: Kokoro via mlx-audio OR Piper via Speaches
   agent:
     build:
       context: .
@@ -88,13 +109,13 @@ services:
       - ./.env
     environment:
       - LIVEKIT_URL=ws://livekit:7880
-      # Point to mlx-audio (single service for STT + TTS)
-      - SPEACHES_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8001}
+      # STT + Piper TTS via Speaches container (CPU faster-whisper)
+      - SPEACHES_URL=http://speaches:8000
+      - PIPER_URL=http://speaches:8000
+      - WHISPER_MODEL=Systran/faster-whisper-medium
+      # TTS Kokoro via mlx-audio on host (optional, for English)
       - KOKORO_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8001}
-      # MLX models and voice - override in .env if needed
-      - WHISPER_MODEL=${WHISPER_MODEL:-mlx-community/whisper-medium-mlx}
       - TTS_MODEL=${TTS_MODEL:-prince-canuma/Kokoro-82M}
-      # mlx-audio Kokoro uses different voices than kokoro-fastapi
       - TTS_VOICE=${TTS_VOICE:-af_heart}
     volumes:
       - caal-memory:/app/data
@@ -104,6 +125,8 @@ services:
       - caal-network
     depends_on:
       livekit:
+        condition: service_healthy
+      speaches:
         condition: service_healthy
     restart: unless-stopped
 
@@ -198,3 +221,5 @@ volumes:
     name: caal-memory
   caal-config:
     name: caal-config
+  speaches-cache:
+    name: caal-speaches-cache

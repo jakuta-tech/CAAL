@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
+import { Command } from 'cmdk';
 import { toast } from 'sonner';
 import {
+  CaretDown,
   Check,
   CircleHalf,
   CircleNotch,
@@ -28,11 +30,18 @@ interface Settings {
   // General
   theme: 'midnight' | 'greySlate' | 'light';
   // Providers
-  llm_provider: 'ollama' | 'groq';
+  llm_provider: 'ollama' | 'groq' | 'openai_compatible' | 'openrouter';
   ollama_host: string;
   ollama_model: string;
   groq_api_key: string;
   groq_model: string;
+  // OpenAI-compatible
+  openai_base_url: string;
+  openai_api_key: string;
+  openai_model: string;
+  // OpenRouter
+  openrouter_api_key: string;
+  openrouter_model: string;
   tts_provider: 'kokoro' | 'piper';
   tts_voice_kokoro: string;
   tts_voice_piper: string;
@@ -78,6 +87,13 @@ const DEFAULT_SETTINGS: Settings = {
   ollama_model: '',
   groq_api_key: '',
   groq_model: '',
+  // OpenAI-compatible
+  openai_base_url: '',
+  openai_api_key: '',
+  openai_model: '',
+  // OpenRouter
+  openrouter_api_key: '',
+  openrouter_model: '',
   tts_provider: 'kokoro',
   tts_voice_kokoro: 'am_puck',
   tts_voice_piper: 'speaches-ai/piper-en_US-ryan-high',
@@ -137,6 +153,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [voices, setVoices] = useState<string[]>([]);
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [groqModels, setGroqModels] = useState<string[]>([]);
+  const [openaiModels, setOpenaiModels] = useState<string[]>([]);
+  const [openrouterModels, setOpenrouterModels] = useState<string[]>([]);
   const [wakeWordModels, setWakeWordModels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [settingsLoadedFromApi, setSettingsLoadedFromApi] = useState(false);
@@ -150,6 +168,17 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     error: null,
   });
   const [groqTest, setGroqTest] = useState<{ status: TestStatus; error: string | null }>({
+    status: 'idle',
+    error: null,
+  });
+  const [openaiTest, setOpenaiTest] = useState<{ status: TestStatus; error: string | null }>({
+    status: 'idle',
+    error: null,
+  });
+  const [openrouterTest, setOpenrouterTest] = useState<{
+    status: TestStatus;
+    error: string | null;
+  }>({
     status: 'idle',
     error: null,
   });
@@ -172,6 +201,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     info: null,
   });
 
+  // OpenRouter searchable dropdown state
+  const [openrouterDropdownOpen, setOpenrouterDropdownOpen] = useState(false);
+  const [openrouterSearch, setOpenrouterSearch] = useState('');
+
+  // Restart prompt state
+  const [originalProvider, setOriginalProvider] = useState<string | null>(null);
+  const [showRestartPrompt, setShowRestartPrompt] = useState(false);
+
   const t = useTranslations('Settings');
   const tCommon = useTranslations('Common');
 
@@ -190,6 +227,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const loadSettings = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setShowRestartPrompt(false);
+    setOriginalProvider(null);
 
     try {
       // First load settings to get the correct tts_provider
@@ -271,6 +310,13 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     }
   }, [settings.theme, settingsLoadedFromApi]);
 
+  // Capture original provider when settings first load
+  useEffect(() => {
+    if (settingsLoadedFromApi && originalProvider === null) {
+      setOriginalProvider(settings.llm_provider);
+    }
+  }, [settingsLoadedFromApi, settings.llm_provider, originalProvider]);
+
   // ---------------------------------------------------------------------------
   // Test connections
   // ---------------------------------------------------------------------------
@@ -337,6 +383,68 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       testGroq();
     }
   }, [isOpen, settings.groq_api_key, groqModels.length, loading, testGroq]);
+
+  const testOpenAICompatible = useCallback(async () => {
+    if (!settings.openai_base_url) return;
+    setOpenaiTest({ status: 'testing', error: null });
+
+    try {
+      const res = await fetch('/api/setup/test-openai-compatible', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base_url: settings.openai_base_url,
+          api_key: settings.openai_api_key,
+        }),
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        setOpenaiTest({ status: 'success', error: null });
+        setOpenaiModels(result.models || []);
+        if (!settings.openai_model && result.models?.length > 0) {
+          setSettings((s) => ({ ...s, openai_model: result.models[0] }));
+        }
+      } else {
+        setOpenaiTest({ status: 'error', error: result.error || t('errors.connectionFailed') });
+      }
+    } catch {
+      setOpenaiTest({ status: 'error', error: t('errors.connectionFailed') });
+    }
+  }, [settings.openai_base_url, settings.openai_api_key, settings.openai_model, t]);
+
+  const testOpenRouter = useCallback(async () => {
+    if (!settings.openrouter_api_key) return;
+    setOpenrouterTest({ status: 'testing', error: null });
+
+    try {
+      const res = await fetch('/api/setup/test-openrouter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: settings.openrouter_api_key }),
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        setOpenrouterTest({ status: 'success', error: null });
+        setOpenrouterModels(result.models || []);
+        if (!settings.openrouter_model && result.models?.length > 0) {
+          setSettings((s) => ({ ...s, openrouter_model: result.models[0] }));
+        }
+      } else {
+        setOpenrouterTest({ status: 'error', error: result.error || t('errors.invalidApiKey') });
+      }
+    } catch {
+      setOpenrouterTest({ status: 'error', error: t('errors.failedToValidate') });
+    }
+  }, [settings.openrouter_api_key, settings.openrouter_model, t]);
+
+  // Auto-fetch OpenRouter models when API key is available and models not yet loaded
+  useEffect(() => {
+    if (isOpen && settings.openrouter_api_key && openrouterModels.length === 0 && !loading) {
+      testOpenRouter();
+    }
+  }, [isOpen, settings.openrouter_api_key, openrouterModels.length, loading, testOpenRouter]);
 
   const testHass = useCallback(async () => {
     if (!settings.hass_host || !settings.hass_token) return;
@@ -457,7 +565,12 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
         });
       }
 
-      onClose();
+      // Check if provider changed and show restart prompt instead of closing
+      if (settings.llm_provider !== originalProvider && originalProvider !== null) {
+        setShowRestartPrompt(true);
+      } else {
+        onClose();
+      }
     } catch (err) {
       console.error('Error saving settings:', err);
       setError(err instanceof Error ? err.message : t('errors.saveFailed'));
@@ -865,7 +978,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           {t('providers.llmProvider')}
         </label>
         <div
-          className="inline-flex rounded-xl p-1"
+          className="flex flex-wrap gap-2 rounded-xl p-1"
           style={{ background: 'rgb(from var(--surface-2) r g b / 0.5)' }}
         >
           <button
@@ -873,7 +986,6 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               setSettings({
                 ...settings,
                 llm_provider: 'ollama',
-                stt_provider: 'speaches',
               } as Settings)
             }
             className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
@@ -885,9 +997,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             Ollama
           </button>
           <button
-            onClick={() =>
-              setSettings({ ...settings, llm_provider: 'groq', stt_provider: 'groq' } as Settings)
-            }
+            onClick={() => setSettings({ ...settings, llm_provider: 'groq' } as Settings)}
             className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               settings.llm_provider === 'groq'
                 ? 'bg-background text-foreground shadow'
@@ -896,9 +1006,32 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           >
             Groq
           </button>
+          <button
+            onClick={() =>
+              setSettings({ ...settings, llm_provider: 'openai_compatible' } as Settings)
+            }
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+              settings.llm_provider === 'openai_compatible'
+                ? 'bg-background text-foreground shadow'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            OpenAI Compatible
+          </button>
+          <button
+            onClick={() => setSettings({ ...settings, llm_provider: 'openrouter' } as Settings)}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+              settings.llm_provider === 'openrouter'
+                ? 'bg-background text-foreground shadow'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            OpenRouter
+          </button>
         </div>
 
-        {settings.llm_provider === 'ollama' ? (
+        {/* Ollama Settings */}
+        {settings.llm_provider === 'ollama' && (
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">{t('providers.hostUrl')}</label>
@@ -958,7 +1091,10 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               </div>
             )}
           </div>
-        ) : (
+        )}
+
+        {/* Groq Settings */}
+        {settings.llm_provider === 'groq' && (
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">{t('providers.apiKey')}</label>
@@ -1029,11 +1165,204 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         )}
 
+        {/* OpenAI-compatible Settings */}
+        {settings.llm_provider === 'openai_compatible' && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('providers.baseUrl')}</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={settings.openai_base_url}
+                  onChange={(e) => setSettings({ ...settings, openai_base_url: e.target.value })}
+                  placeholder="http://localhost:8000/v1"
+                  className="input-field text-foreground flex-1 px-4 py-3 text-sm"
+                />
+                <button
+                  onClick={testOpenAICompatible}
+                  disabled={!settings.openai_base_url || openaiTest.status === 'testing'}
+                  className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+                  style={{ background: 'rgb(from var(--surface-2) r g b / 0.5)' }}
+                >
+                  <TestStatusIcon status={openaiTest.status} />
+                  {tCommon('test')}
+                </button>
+              </div>
+              {openaiTest.error && <p className="text-xs text-red-500">{openaiTest.error}</p>}
+              {openaiTest.status === 'success' && (
+                <p className="text-xs text-green-500">
+                  {t('providers.modelsAvailable', { count: openaiModels.length })}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                {t('providers.apiKey')} ({t('providers.optional')})
+              </label>
+              <input
+                type="password"
+                value={settings.openai_api_key}
+                onChange={(e) => setSettings({ ...settings, openai_api_key: e.target.value })}
+                placeholder="sk-..."
+                className="input-field text-foreground w-full px-4 py-3 text-sm"
+              />
+              <p className="text-muted-foreground text-xs">{t('providers.openaiApiKeyNote')}</p>
+            </div>
+
+            {/* Model dropdown - shown after successful test */}
+            {(openaiModels.length > 0 || settings.openai_model) && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{t('providers.model')}</label>
+                <select
+                  value={settings.openai_model}
+                  onChange={(e) => setSettings({ ...settings, openai_model: e.target.value })}
+                  className="select-field text-foreground w-full px-4 py-3 text-sm"
+                >
+                  {openaiModels.length > 0 ? (
+                    <>
+                      <option value="">{t('providers.selectModel')}</option>
+                      {openaiModels.map((model) => (
+                        <option key={model} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    <option value={settings.openai_model}>{settings.openai_model}</option>
+                  )}
+                </select>
+                {openaiModels.length === 0 && settings.openai_model && (
+                  <p className="text-muted-foreground text-xs">
+                    {t('providers.testConnectionToSee')}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <p className="text-muted-foreground text-xs">
+              {t('providers.openaiCompatibleSttNote')}
+            </p>
+          </div>
+        )}
+
+        {/* OpenRouter Settings */}
+        {settings.llm_provider === 'openrouter' && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('providers.apiKey')}</label>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={settings.openrouter_api_key}
+                  onChange={(e) => setSettings({ ...settings, openrouter_api_key: e.target.value })}
+                  placeholder="sk-or-..."
+                  className="input-field text-foreground flex-1 px-4 py-3 text-sm"
+                />
+                <button
+                  onClick={testOpenRouter}
+                  disabled={!settings.openrouter_api_key || openrouterTest.status === 'testing'}
+                  className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+                  style={{ background: 'rgb(from var(--surface-2) r g b / 0.5)' }}
+                >
+                  <TestStatusIcon status={openrouterTest.status} />
+                  {tCommon('test')}
+                </button>
+              </div>
+              {openrouterTest.error && (
+                <p className="text-xs text-red-500">{openrouterTest.error}</p>
+              )}
+              {openrouterTest.status === 'success' && (
+                <p className="text-xs text-green-500">
+                  {t('providers.modelsAvailable', { count: openrouterModels.length })}
+                </p>
+              )}
+              <p className="text-muted-foreground text-xs">
+                {t('providers.getApiKeyAt')}{' '}
+                <a
+                  href="https://openrouter.ai/keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline"
+                >
+                  openrouter.ai
+                </a>
+              </p>
+            </div>
+
+            {/* Model dropdown with searchable cmdk */}
+            {(openrouterModels.length > 0 || settings.openrouter_model) && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{t('providers.model')}</label>
+                <div className="relative">
+                  <button
+                    onClick={() => setOpenrouterDropdownOpen(!openrouterDropdownOpen)}
+                    className="input-field text-foreground flex w-full items-center justify-between px-4 py-3 text-left text-sm"
+                  >
+                    <span className={settings.openrouter_model ? '' : 'text-muted-foreground'}>
+                      {settings.openrouter_model || t('providers.selectModel')}
+                    </span>
+                    <CaretDown className="h-4 w-4" />
+                  </button>
+
+                  {openrouterDropdownOpen && (
+                    <div
+                      className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border shadow-lg"
+                      style={{
+                        background: 'var(--surface-2)',
+                        borderColor: 'var(--border-subtle)',
+                      }}
+                    >
+                      <Command shouldFilter={false}>
+                        <Command.Input
+                          value={openrouterSearch}
+                          onValueChange={setOpenrouterSearch}
+                          placeholder={t('providers.searchModels')}
+                          className="w-full border-b px-4 py-3 text-sm outline-none"
+                          style={{ background: 'transparent', borderColor: 'var(--border-subtle)' }}
+                        />
+                        <Command.List className="max-h-60 overflow-y-auto p-1">
+                          <Command.Empty className="text-muted-foreground py-6 text-center text-sm">
+                            {t('providers.noModelsFound')}
+                          </Command.Empty>
+                          {openrouterModels
+                            .filter((model) =>
+                              model.toLowerCase().includes(openrouterSearch.toLowerCase())
+                            )
+                            .map((model) => (
+                              <Command.Item
+                                key={model}
+                                value={model}
+                                onSelect={() => {
+                                  setSettings({ ...settings, openrouter_model: model });
+                                  setOpenrouterDropdownOpen(false);
+                                  setOpenrouterSearch('');
+                                }}
+                                className="hover:bg-muted cursor-pointer rounded-md px-3 py-2 text-sm"
+                              >
+                                {model}
+                              </Command.Item>
+                            ))}
+                        </Command.List>
+                      </Command>
+                    </div>
+                  )}
+                </div>
+                {openrouterModels.length === 0 && settings.openrouter_model && (
+                  <p className="text-muted-foreground text-xs">{t('providers.enterApiKeyToSee')}</p>
+                )}
+              </div>
+            )}
+
+            <p className="text-muted-foreground text-xs">{t('providers.openrouterSttNote')}</p>
+          </div>
+        )}
+
         {/* STT Info */}
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
           <p className="text-sm text-blue-200">
             <span className="font-semibold">{t('providers.sttProvider')}:</span>{' '}
-            {settings.llm_provider === 'ollama'
+            {settings.llm_provider === 'ollama' || settings.llm_provider === 'openai_compatible'
               ? t('providers.speachesLocal')
               : t('providers.groqWhisper')}
             <br />
@@ -1404,6 +1733,26 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               <>
                 {error && (
                   <div className="mb-4 rounded-md bg-red-500/10 p-3 text-red-500">{error}</div>
+                )}
+
+                {showRestartPrompt && (
+                  <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+                    <p className="text-sm font-medium text-yellow-200">
+                      {t('providers.restartRequired')}
+                    </p>
+                    <p className="mt-1 text-xs text-yellow-200/70">
+                      {t('providers.restartDescription')}
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={onClose}
+                        className="rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                        style={{ background: 'rgb(from var(--surface-2) r g b / 0.5)' }}
+                      >
+                        {t('providers.restartLater')}
+                      </button>
+                    </div>
+                  </div>
                 )}
 
                 {activeTab === 'agent' && renderAgentTab()}

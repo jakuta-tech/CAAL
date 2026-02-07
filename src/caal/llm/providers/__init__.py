@@ -7,6 +7,8 @@ while sharing common tool orchestration logic.
 Providers:
     - OllamaProvider: Local Ollama with think parameter support
     - GroqProvider: Groq cloud API
+    - OpenAICompatibleProvider: Any OpenAI-compatible server
+    - OpenRouterProvider: OpenRouter cloud API (400+ models)
 
 Example:
     >>> from caal.llm.providers import create_provider
@@ -16,6 +18,14 @@ Example:
     >>>
     >>> # Create Groq provider
     >>> provider = create_provider("groq", model="llama-3.3-70b-versatile")
+    >>>
+    >>> # Create OpenAI-compatible provider (LiteLLM, vLLM, etc.)
+    >>> provider = create_provider("openai_compatible", model="mistral",
+    ...                            base_url="http://localhost:8000/v1")
+    >>>
+    >>> # Create OpenRouter provider
+    >>> provider = create_provider("openrouter", model="openai/gpt-4",
+    ...                            api_key="sk-...")
 """
 
 from __future__ import annotations
@@ -27,6 +37,8 @@ from typing import Any
 from .base import LLMProvider, LLMResponse, ToolCall
 from .groq_provider import GroqProvider
 from .ollama_provider import OllamaProvider
+from .openai_compatible_provider import OpenAICompatibleProvider
+from .openrouter_provider import OpenRouterProvider
 
 __all__ = [
     "LLMProvider",
@@ -34,6 +46,8 @@ __all__ = [
     "ToolCall",
     "OllamaProvider",
     "GroqProvider",
+    "OpenAICompatibleProvider",
+    "OpenRouterProvider",
     "create_provider",
 ]
 
@@ -47,7 +61,8 @@ def create_provider(
     """Factory function to create an LLM provider by name.
 
     Args:
-        provider_name: Provider identifier ("ollama" or "groq")
+        provider_name: Provider identifier ("ollama", "groq", "openai_compatible",
+            or "openrouter")
         **kwargs: Provider-specific configuration options
 
     Returns:
@@ -63,6 +78,11 @@ def create_provider(
         ...     think=False,
         ...     temperature=0.15,
         ... )
+        >>> provider = create_provider(
+        ...     "openai_compatible",
+        ...     model="mistral",
+        ...     base_url="http://localhost:8000/v1",
+        ... )
     """
     provider_name = provider_name.lower()
 
@@ -70,10 +90,14 @@ def create_provider(
         return OllamaProvider(**kwargs)
     elif provider_name == "groq":
         return GroqProvider(**kwargs)
+    elif provider_name == "openai_compatible":
+        return OpenAICompatibleProvider(**kwargs)
+    elif provider_name == "openrouter":
+        return OpenRouterProvider(**kwargs)
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider_name}. "
-            f"Supported providers: ollama, groq"
+            f"Supported providers: ollama, groq, openai_compatible, openrouter"
         )
 
 
@@ -85,9 +109,14 @@ def create_provider_from_settings(settings: dict[str, Any]) -> LLMProvider:
 
     Args:
         settings: Runtime settings dict with keys like:
-            - llm_provider: "ollama" or "groq"
-            - model: Ollama model name
+            - llm_provider: "ollama", "groq", "openai_compatible", or "openrouter"
+            - ollama_model: Ollama model name
             - groq_model: Groq model name
+            - openai_model: OpenAI-compatible model name
+            - openai_base_url: OpenAI-compatible server URL
+            - openai_api_key: OpenAI-compatible API key (optional)
+            - openrouter_model: OpenRouter model name
+            - openrouter_api_key: OpenRouter API key (required)
             - temperature: Sampling temperature
             - num_ctx: Context window size (Ollama only)
 
@@ -117,8 +146,30 @@ def create_provider_from_settings(settings: dict[str, Any]) -> LLMProvider:
             api_key=api_key,
             temperature=settings.get("temperature", 0.15),
         )
+    elif provider_name == "openai_compatible":
+        # API key from settings, fallback to environment variable
+        api_key = settings.get("openai_api_key") or os.environ.get("OPENAI_API_KEY")
+        return OpenAICompatibleProvider(
+            model=settings.get("openai_model", "gpt-3.5-turbo"),
+            base_url=settings.get("openai_base_url", "http://localhost:8000/v1"),
+            api_key=api_key,
+            temperature=settings.get("temperature", 0.7),
+        )
+    elif provider_name == "openrouter":
+        # API key from settings, fallback to environment variable
+        api_key = settings.get("openrouter_api_key") or os.environ.get("OPENROUTER_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "OpenRouter API key required. Set openrouter_api_key in settings "
+                "or OPENROUTER_API_KEY environment variable."
+            )
+        return OpenRouterProvider(
+            model=settings.get("openrouter_model", "openai/gpt-4"),
+            api_key=api_key,
+            temperature=settings.get("temperature", 0.7),
+        )
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider_name}. "
-            f"Supported providers: ollama, groq"
+            f"Supported providers: ollama, groq, openai_compatible, openrouter"
         )

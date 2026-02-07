@@ -20,9 +20,39 @@ import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
+
+
+def validate_url(url: str) -> tuple[bool, str]:
+    """Validate URL format for settings.
+
+    Args:
+        url: URL string to validate
+
+    Returns:
+        Tuple of (is_valid, error_message). Empty error_message if valid.
+    """
+    if not url or not url.strip():
+        return True, ""  # Empty is valid (not configured)
+
+    url = url.strip()
+
+    try:
+        parsed = urlparse(url)
+    except Exception as e:
+        return False, f"Could not parse URL: {e}"
+
+    if not parsed.scheme:
+        return False, "URL must include scheme (http:// or https://)"
+    if parsed.scheme.lower() not in ("http", "https"):
+        return False, f"URL scheme must be http or https, got '{parsed.scheme}'"
+    if not parsed.netloc:
+        return False, "URL must include host (e.g., localhost:8000)"
+
+    return True, ""
 
 # Paths - use environment variable for Docker, fallback for local dev
 _SCRIPT_DIR = Path(__file__).parent.parent.parent  # src/caal -> project root
@@ -74,6 +104,13 @@ DEFAULT_SETTINGS = {
     # Turn detection settings (advanced)
     "allow_interruptions": True,  # Whether user can interrupt agent mid-speech
     "min_endpointing_delay": 0.5,  # Seconds to wait before considering turn complete
+    # OpenAI-compatible settings (any OpenAI-compatible server)
+    "openai_api_key": "",         # Optional API key for authenticated servers
+    "openai_base_url": "",        # Server URL (empty = not configured)
+    "openai_model": "",           # Model name (empty = use server default)
+    # OpenRouter settings (cloud API)
+    "openrouter_api_key": "",     # OpenRouter API key (required for openrouter provider)
+    "openrouter_model": "",       # Model name (empty = use default)
 }
 
 # Per-language Piper TTS voice mapping

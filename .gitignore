@@ -37,6 +37,7 @@ env/
 .claude/
 CLAUDE.md
 TODO.md
+.planning/
 
 # Environment files
 .env

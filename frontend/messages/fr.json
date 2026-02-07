@@ -73,7 +73,19 @@
       "ollamaHost": "Hôte Ollama",
       "groqApiKey": "Clé API Groq",
       "ollamaSttNote": "Utiliser Ollama active également la reconnaissance vocale locale via Speaches.",
-      "groqSttNote": "Utiliser Groq active également la reconnaissance vocale cloud rapide via Whisper."
+      "groqSttNote": "Utiliser Groq active également la reconnaissance vocale cloud rapide via Whisper.",
+      "openaiCompatibleDesc": "API auto-hébergée ou compatible OpenAI",
+      "openrouterDesc": "Accès à plus de 200 modèles via API unifiée",
+      "baseUrl": "URL de base",
+      "optional": "optionnel",
+      "openaiApiKeyNote": "Laissez vide si votre serveur ne nécessite pas d'authentification",
+      "openaiCompatibleSttNote": "Utiliser OpenAI-compatible active la reconnaissance vocale locale via Speaches.",
+      "openrouterSttNote": "Utiliser OpenRouter active la reconnaissance vocale cloud rapide via Groq Whisper.",
+      "searchModels": "Rechercher des modèles...",
+      "noModelsFound": "Aucun modèle trouvé",
+      "restartRequired": "Redémarrage requis",
+      "restartDescription": "Le fournisseur LLM a changé. Veuillez redémarrer l'agent pour que les modifications prennent effet.",
+      "restartLater": "Je redémarrerai plus tard"
     },
     "llm": {
       "temperature": "Température",
