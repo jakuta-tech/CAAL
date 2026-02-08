@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![LiveKit](https://img.shields.io/badge/LiveKit-Agents-purple.svg)](https://docs.livekit.io/agents/)
 
-> **Self-hosted voice assistant you actually own. The model never sees your API keys.**
+> **Self-hosted voice assistant you actually own.  Secure by design - the LLM never sees your API keys.**
 
 CAAL is an open-source voice assistant built on [LiveKit Agents](https://docs.livekit.io/agents/) that runs entirely on your hardware. Your voice, your data, your credentials — all on your network.
 
