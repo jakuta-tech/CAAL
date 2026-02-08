@@ -16,8 +16,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (copy mode avoids EAGAIN on ZFS/overlay2 filesystems)
+RUN pnpm install --frozen-lockfile --config.package-import-method=copy
 
 # ============================================================================
 # Stage 2: Builder
