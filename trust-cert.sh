@@ -59,6 +59,7 @@ case "$OS" in
             NSSDB="$HOME/.pki/nssdb"
             if [ -d "$NSSDB" ]; then
                 echo "Adding certificate to Chrome trust store..."
+                certutil -d sql:"$NSSDB" -D -n "CAAL" 2>/dev/null || true
                 certutil -d sql:"$NSSDB" -A -t "C,," -n "CAAL" -i "$CERT"
             fi
 
@@ -66,6 +67,7 @@ case "$OS" in
             for profile in "$HOME"/.mozilla/firefox/*.default*; do
                 if [ -d "$profile" ]; then
                     echo "Adding certificate to Firefox profile $(basename "$profile")..."
+                    certutil -d sql:"$profile" -D -n "CAAL" 2>/dev/null || true
                     certutil -d sql:"$profile" -A -t "C,," -n "CAAL" -i "$CERT"
                 fi
             done
