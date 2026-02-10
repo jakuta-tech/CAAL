@@ -136,6 +136,7 @@ const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
   { code: 'it', label: 'Italiano' },
+  { code: 'pt', label: 'Português' },
 ] as const;
 
 // =============================================================================
@@ -660,6 +661,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       en: 'speaches-ai/piper-en_US-ryan-high',
       fr: 'speaches-ai/piper-fr_FR-siwis-medium',
       it: 'speaches-ai/piper-it_IT-paola-medium',
+      pt: 'speaches-ai/piper-pt_BR-faber-medium',
     };
     const updatedSettings = {
       ...settings,

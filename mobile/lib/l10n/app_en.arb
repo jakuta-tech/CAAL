@@ -235,6 +235,9 @@
   "languageItalian": "Italiano",
   "@languageItalian": { "description": "Italian option" },
 
+  "languagePortuguese": "Português",
+  "@languagePortuguese": { "description": "Portuguese option" },
+
   "changesNote": "Note: Model, context size, and wake word changes take effect on next session.",
   "@changesNote": { "description": "Settings note" },
 

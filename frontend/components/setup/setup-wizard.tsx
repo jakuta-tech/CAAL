@@ -71,6 +71,7 @@ const TOTAL_STEPS = 4;
 const PIPER_MODELS: Record<string, string> = {
   fr: 'speaches-ai/piper-fr_FR-siwis-medium',
   it: 'speaches-ai/piper-it_IT-paola-medium',
+  pt: 'speaches-ai/piper-pt_BR-faber-medium',
 };
 
 export function SetupWizard({ onComplete }: SetupWizardProps) {

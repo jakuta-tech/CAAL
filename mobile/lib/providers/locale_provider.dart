@@ -8,7 +8,7 @@ class LocaleProvider extends ChangeNotifier {
   Locale _locale = const Locale('en');
   Locale get locale => _locale;
 
-  static const supportedLocales = [Locale('en'), Locale('fr'), Locale('it')];
+  static const supportedLocales = [Locale('en'), Locale('fr'), Locale('it'), Locale('pt')];
 
   /// Load locale from backend settings.
   Future<void> loadFromSettings(String serverUrl) async {

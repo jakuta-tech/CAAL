@@ -743,6 +743,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     DropdownMenuItem(value: 'en', child: Text(l10n.languageEnglish)),
                     DropdownMenuItem(value: 'fr', child: Text(l10n.languageFrench)),
                     DropdownMenuItem(value: 'it', child: Text(l10n.languageItalian)),
+                    DropdownMenuItem(value: 'pt', child: Text(l10n.languagePortuguese)),
                   ],
                   onChanged: (value) async {
                     if (value != null) {
@@ -759,6 +760,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           'en': 'speaches-ai/piper-en_US-ryan-high',
                           'fr': 'speaches-ai/piper-fr_FR-siwis-medium',
                           'it': 'speaches-ai/piper-it_IT-paola-medium',
+                          'pt': 'speaches-ai/piper-pt_BR-faber-medium',
                         };
                         final modelId =
                             piperModels[value] ?? piperModels['en']!;

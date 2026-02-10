@@ -89,6 +89,8 @@ def format_date_speech_friendly(dt: datetime, language: str = "en") -> str:
         return _format_date_french(dt)
     if language == "it":
         return _format_date_italian(dt)
+    if language == "pt":
+        return _format_date_portuguese(dt)
 
     # English (default)
     day_name = dt.strftime('%A')
@@ -138,6 +140,8 @@ def format_time_speech_friendly(dt: datetime, language: str = "en") -> str:
         return _format_time_french(dt)
     if language == "it":
         return _format_time_italian(dt)
+    if language == "pt":
+        return _format_time_portuguese(dt)
 
     # English (default)
     hour = dt.hour
@@ -228,5 +232,49 @@ def _format_time_italian(dt: datetime) -> str:
     # 24-hour format
     if minute == 0:
         return f"{hour}"
+    else:
+        return f"{hour} e {minute}"
+
+
+def _format_date_portuguese(dt: datetime) -> str:
+    """Format a date in Brazilian Portuguese speech-friendly style.
+
+    Portuguese dates use cardinal numbers except "primeiro" for the 1st.
+    Format: "segunda-feira, 2 de fevereiro de 2026" or "quarta-feira, primeiro de janeiro de 2026"
+    """
+    pt_days = [
+        "segunda-feira", "terca-feira", "quarta-feira", "quinta-feira",
+        "sexta-feira", "sabado", "domingo",
+    ]
+    pt_months = [
+        "janeiro", "fevereiro", "marco", "abril", "maio", "junho",
+        "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+    ]
+
+    day_name = pt_days[dt.weekday()]
+    month_name = pt_months[dt.month - 1]
+    day_number = "primeiro" if dt.day == 1 else str(dt.day)
+
+    return f"{day_name}, {day_number} de {month_name} de {dt.year}"
+
+
+def _format_time_portuguese(dt: datetime) -> str:
+    """Format a time in Brazilian Portuguese speech-friendly style.
+
+    Uses 24-hour clock with "e" for minutes.
+    Examples: "15 e 30", "15 horas", "meio-dia", "meia-noite"
+    """
+    hour = dt.hour
+    minute = dt.minute
+
+    # Special cases
+    if hour == 0 and minute == 0:
+        return "meia-noite"
+    if hour == 12 and minute == 0:
+        return "meio-dia"
+
+    # 24-hour format
+    if minute == 0:
+        return f"{hour} horas"
     else:
         return f"{hour} e {minute}"
