@@ -1643,6 +1643,7 @@ async def get_memory() -> MemoryListResponse:
         MemoryListResponse with all non-expired entries
     """
     memory = ShortTermMemory()
+    memory.reload()  # Re-read from disk (agent writes from a separate process)
     entries = memory.get_all()
 
     return MemoryListResponse(
@@ -1673,6 +1674,7 @@ async def get_memory_entry(key: str) -> MemoryEntryResponse:
         HTTPException: 404 if key not found or expired
     """
     memory = ShortTermMemory()
+    memory.reload()  # Re-read from disk (agent writes from a separate process)
     entries = memory.get_all()
 
     # Find the entry with matching key
@@ -1700,6 +1702,7 @@ async def store_memory(req: MemoryStoreRequest) -> MemoryStoreResponse:
         MemoryStoreResponse with status
     """
     memory = ShortTermMemory()
+    memory.reload()  # Re-read from disk (agent writes from a separate process)
     memory.store(
         key=req.key,
         value=req.value,
@@ -1726,6 +1729,7 @@ async def delete_memory_entry(key: str) -> MemoryDeleteResponse:
         HTTPException: 404 if key not found
     """
     memory = ShortTermMemory()
+    memory.reload()  # Re-read from disk (agent writes from a separate process)
     deleted = memory.delete(key)
 
     if not deleted:
@@ -1742,6 +1746,7 @@ async def clear_memory() -> MemoryClearResponse:
         MemoryClearResponse with status and count of cleared entries
     """
     memory = ShortTermMemory()
+    memory.reload()  # Re-read from disk (agent writes from a separate process)
     entries = memory.list_keys()
     count = len(entries)
 
