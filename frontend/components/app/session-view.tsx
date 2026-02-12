@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { useSessionContext, useSessionMessages } from '@livekit/components-react';
+import { Brain } from '@phosphor-icons/react/dist/ssr';
 import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
@@ -58,10 +59,12 @@ export function Fade({ top = false, bottom = false, className }: FadeProps) {
 
 interface SessionViewProps {
   appConfig: AppConfig;
+  onOpenMemory?: () => void;
 }
 
 export const SessionView = ({
   appConfig,
+  onOpenMemory,
   ...props
 }: React.ComponentProps<'section'> & SessionViewProps) => {
   const session = useSessionContext();
@@ -88,6 +91,18 @@ export const SessionView = ({
 
   return (
     <section className="bg-background relative z-10 h-full w-full overflow-hidden" {...props}>
+      {/* Top right buttons */}
+      {onOpenMemory && (
+        <div className="fixed top-6 right-6 z-40">
+          <button
+            onClick={onOpenMemory}
+            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 transition-colors"
+          >
+            <Brain className="h-6 w-6" weight="fill" />
+          </button>
+        </div>
+      )}
+
       {/* Chat Transcript */}
       <div
         className={cn(

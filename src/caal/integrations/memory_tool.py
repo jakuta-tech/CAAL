@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING
 
 from livekit.agents import function_tool
 
+from ..memory.base import DEFAULT_TTL_SECONDS
+
 if TYPE_CHECKING:
     from ..memory import ShortTermMemory
 
@@ -36,6 +38,7 @@ class MemoryTools:
         action: str,
         key: str = "",
         value: str = "",
+        ttl: str = "",
     ) -> str:
         """Store or retrieve information for later use in this conversation.
 
@@ -50,6 +53,8 @@ class MemoryTools:
             action: One of "store", "get", "delete", "list"
             key: The key to store/get/delete (e.g., "flight_number", "tracking_code")
             value: The value to store (only required for action="store")
+            ttl: Optional expiry for store action. Examples: "1h", "6h", "1d",
+                "7d", "30d", "forever". Default is 7 days if not specified.
 
         Returns:
             Result of the operation
@@ -77,7 +82,10 @@ class MemoryTools:
             except json.JSONDecodeError:
                 parsed_value = value
 
-            memory.store(key=key, value=parsed_value, source="explicit")
+            # Parse TTL string to seconds
+            ttl_seconds = self._parse_ttl(ttl) if ttl else None
+
+            memory.store(key=key, value=parsed_value, ttl_seconds=ttl_seconds, source="explicit")
             return f"Stored: {key}"
 
         elif action == "get":
@@ -111,3 +119,21 @@ class MemoryTools:
 
         else:
             return f"Unknown action: {action}. Valid actions: store, get, delete, list"
+
+    @staticmethod
+    def _parse_ttl(ttl_str: str) -> int | None:
+        """Parse a TTL string like '1h', '7d', 'never' into seconds."""
+        ttl_str = ttl_str.strip().lower()
+        if ttl_str in ("never", "none", "forever"):
+            return None
+
+        multipliers = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+        for suffix, mult in multipliers.items():
+            if ttl_str.endswith(suffix):
+                try:
+                    return int(ttl_str[:-1]) * mult
+                except ValueError:
+                    break
+
+        # Fall through to default
+        return DEFAULT_TTL_SECONDS

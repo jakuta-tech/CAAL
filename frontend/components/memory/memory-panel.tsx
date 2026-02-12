@@ -53,6 +53,26 @@ function formatValue(value: unknown): string {
   }
 }
 
+function expiryToTtlOption(expiresAt: number | null): string {
+  if (expiresAt === null) return 'never';
+  const remaining = expiresAt - Date.now() / 1000;
+  if (remaining <= 0) return '1h';
+  if (remaining <= 3600) return '1h';
+  if (remaining <= 21600) return '6h';
+  if (remaining <= 86400) return '1d';
+  if (remaining <= 604800) return '7d';
+  return '30d';
+}
+
+const TTL_OPTIONS: Record<string, number | null> = {
+  '1h': 3600,
+  '6h': 21600,
+  '1d': 86400,
+  '7d': 604800,
+  '30d': 2592000,
+  never: null,
+};
+
 function SourceBadge({ source }: { source: string }) {
   const colors: Record<string, string> = {
     tool_hint: 'bg-blue-500/20 text-blue-400',
@@ -84,7 +104,9 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
   const [selectedEntry, setSelectedEntry] = useState<MemoryEntry | null>(null);
   const [originalValue, setOriginalValue] = useState('');
   const [editValue, setEditValue] = useState('');
-  const editing = editValue !== originalValue;
+  const [originalTtl, setOriginalTtl] = useState('');
+  const [editTtl, setEditTtl] = useState('');
+  const editing = editValue !== originalValue || editTtl !== originalTtl;
 
   const fetchMemory = useCallback(async () => {
     setLoading(true);
@@ -145,13 +167,12 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
           key: selectedEntry.key,
           value: editValue,
           source: selectedEntry.source,
+          ttl_seconds: TTL_OPTIONS[editTtl],
         }),
       });
       if (res.ok) {
-        setEntries(
-          entries.map((e) => (e.key === selectedEntry.key ? { ...e, value: editValue } : e))
-        );
         setSelectedEntry(null);
+        fetchMemory();
       }
     } catch (err) {
       console.error('Failed to save memory entry:', err);
@@ -217,9 +238,12 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
                   onClick={() => {
                     const val =
                       typeof entry.value === 'string' ? entry.value : JSON.stringify(entry.value);
+                    const ttl = expiryToTtlOption(entry.expires_at);
                     setSelectedEntry(entry);
                     setOriginalValue(val);
                     setEditValue(val);
+                    setOriginalTtl(ttl);
+                    setEditTtl(ttl);
                   }}
                 >
                   <div className="min-w-0 flex-1">
@@ -306,10 +330,28 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
               />
             </div>
 
-            <div className="text-muted-foreground grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <label className="mb-1 block text-xs uppercase">{t('detail.storedAt')}</label>
-                <span>{new Date(selectedEntry.stored_at * 1000).toLocaleString()}</span>
+            <div className="text-muted-foreground space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs uppercase">{t('detail.storedAt')}</label>
+                  <span>{new Date(selectedEntry.stored_at * 1000).toLocaleString()}</span>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs uppercase">TTL</label>
+                  <select
+                    value={editTtl}
+                    onChange={(e) => setEditTtl(e.target.value)}
+                    className="bg-muted rounded-lg border px-2 py-1 text-sm"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                  >
+                    <option value="1h">1 hour</option>
+                    <option value="6h">6 hours</option>
+                    <option value="1d">1 day</option>
+                    <option value="7d">7 days</option>
+                    <option value="30d">30 days</option>
+                    <option value="never">{t('detail.noExpiry')}</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs uppercase">{t('detail.expiresAt')}</label>
