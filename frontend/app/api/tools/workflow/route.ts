@@ -23,11 +23,13 @@ export async function GET(request: NextRequest) {
 
   try {
     let manifest, workflow;
+    let readme: string | null = null;
 
     if (useLocal) {
       const basePath = path.join(LOCAL_REGISTRY_PATH, toolPath);
       const manifestPath = path.join(basePath, 'manifest.json');
       const workflowPath = path.join(basePath, 'workflow.json');
+      const readmePath = path.join(basePath, 'README.md');
 
       if (!existsSync(manifestPath)) {
         return NextResponse.json({ error: 'Tool manifest not found' }, { status: 404 });
@@ -39,13 +41,21 @@ export async function GET(request: NextRequest) {
 
       manifest = JSON.parse(await readFile(manifestPath, 'utf-8'));
       workflow = JSON.parse(await readFile(workflowPath, 'utf-8'));
+
+      try {
+        readme = await readFile(readmePath, 'utf-8');
+      } catch {
+        // README is optional
+      }
     } else {
       const manifestUrl = `${REGISTRY_BASE}/${toolPath}/manifest.json`;
       const workflowUrl = `${REGISTRY_BASE}/${toolPath}/workflow.json`;
+      const readmeUrl = `${REGISTRY_BASE}/${toolPath}/README.md`;
 
-      const [manifestRes, workflowRes] = await Promise.all([
+      const [manifestRes, workflowRes, readmeRes] = await Promise.all([
         fetch(manifestUrl, { headers: { Accept: 'application/json' } }),
         fetch(workflowUrl, { headers: { Accept: 'application/json' } }),
+        fetch(readmeUrl, { headers: { Accept: 'text/plain' } }),
       ]);
 
       if (!manifestRes.ok) {
@@ -64,9 +74,13 @@ export async function GET(request: NextRequest) {
 
       manifest = await manifestRes.json();
       workflow = await workflowRes.json();
+
+      if (readmeRes.ok) {
+        readme = await readmeRes.text();
+      }
     }
 
-    return NextResponse.json({ manifest, workflow });
+    return NextResponse.json({ manifest, workflow, readme });
   } catch (error) {
     console.error('[/api/tools/workflow] Error:', error);
     return NextResponse.json(

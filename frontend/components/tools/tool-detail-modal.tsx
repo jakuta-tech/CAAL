@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Markdown from 'react-markdown';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import remarkGfm from 'remark-gfm';
 import {
   ArrowRight,
   ArrowSquareOut,
+  BookOpenText,
   ChatCircle,
   CheckCircle,
   CheckSquare,
@@ -16,6 +19,7 @@ import {
   HardDrives,
   House,
   Key,
+  ListBullets,
   Microphone,
   Package,
   PlayCircle,
@@ -27,6 +31,7 @@ import {
   Wrench,
   X,
 } from '@phosphor-icons/react/dist/ssr';
+import { Tooltip } from '@/components/ui/tooltip';
 import {
   CATEGORY_LABELS,
   TIER_LABELS,
@@ -89,6 +94,8 @@ export function ToolDetailModal({
   const t = useTranslations('Tools');
 
   const [manifest, setManifest] = useState<ToolManifest | null>(null);
+  const [readme, setReadme] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'details' | 'readme'>('details');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -112,6 +119,7 @@ export function ToolDetailModal({
         }
         const data = await res.json();
         setManifest(data.manifest);
+        if (data.readme) setReadme(data.readme);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -179,13 +187,36 @@ export function ToolDetailModal({
               </h2>
             </div>
 
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 rounded-full p-1.5 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            {/* Header actions */}
+            <div className="flex shrink-0 items-center gap-1">
+              {readme && (
+                <Tooltip
+                  content={activeTab === 'readme' ? 'View details' : 'View README'}
+                  side="bottom"
+                >
+                  <button
+                    onClick={() => setActiveTab(activeTab === 'readme' ? 'details' : 'readme')}
+                    className={`rounded-full p-1.5 transition-colors ${
+                      activeTab === 'readme'
+                        ? 'bg-primary/15 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {activeTab === 'readme' ? (
+                      <ListBullets className="h-5 w-5" />
+                    ) : (
+                      <BookOpenText className="h-5 w-5" />
+                    )}
+                  </button>
+                </Tooltip>
+              )}
+              <button
+                onClick={onClose}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1.5 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -200,6 +231,89 @@ export function ToolDetailModal({
             <div className="flex flex-col items-center justify-center py-12">
               <Warning className="h-8 w-8 text-red-500" />
               <p className="text-muted-foreground mt-4">{error}</p>
+            </div>
+          ) : activeTab === 'readme' && readme ? (
+            <div className="prose-invert prose prose-sm max-w-none">
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }) => (
+                    <h1 className="mb-4 border-b border-white/10 pb-2 text-xl font-bold">
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="mt-6 mb-3 border-b border-white/10 pb-1.5 text-lg font-semibold">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="mt-4 mb-2 text-base font-semibold">{children}</h3>
+                  ),
+                  p: ({ children }) => (
+                    <p className="text-muted-foreground mb-3 leading-relaxed">{children}</p>
+                  ),
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {children}
+                    </a>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="text-muted-foreground mb-3 list-disc space-y-1 pl-5">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="text-muted-foreground mb-3 list-decimal space-y-1 pl-5">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                  code: ({ className, children }) => {
+                    const isBlock = className?.includes('language-');
+                    return isBlock ? (
+                      <code className={`${className} text-sm`}>{children}</code>
+                    ) : (
+                      <code className="rounded bg-white/10 px-1.5 py-0.5 text-xs text-orange-300">
+                        {children}
+                      </code>
+                    );
+                  },
+                  pre: ({ children }) => (
+                    <pre className="mb-3 overflow-x-auto rounded-lg border border-white/5 bg-black/30 p-4 text-sm">
+                      {children}
+                    </pre>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-primary/30 text-muted-foreground mb-3 border-l-2 pl-4 italic">
+                      {children}
+                    </blockquote>
+                  ),
+                  table: ({ children }) => (
+                    <div className="mb-3 overflow-x-auto">
+                      <table className="w-full border-collapse text-sm">{children}</table>
+                    </div>
+                  ),
+                  th: ({ children }) => (
+                    <th className="border border-white/10 bg-white/5 px-3 py-2 text-left font-semibold">
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="text-muted-foreground border border-white/10 px-3 py-2">
+                      {children}
+                    </td>
+                  ),
+                  hr: () => <hr className="my-4 border-white/10" />,
+                }}
+              >
+                {readme}
+              </Markdown>
             </div>
           ) : (
             <div className="space-y-6">
