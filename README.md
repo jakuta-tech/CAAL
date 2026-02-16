@@ -31,7 +31,7 @@ ollama pull coreworxlab/caal-ministral:latest
 
 - **Tool Registry** — Browse and install community tools with one click. Every submission goes through automated security review and human approval
 - **Tool Chaining** — Sequential multi-tool calls in one prompt. The model uses real data from each step to inform the next
-- **Home Assistant** — Voice control across lights, covers, locks, climate, media, and more via `hass_control` and `hass_get_state`
+- **Home Assistant** — Voice control across lights, covers, locks, climate, media, and more via `hass`
 - **n8n Workflows** — Any workflow becomes a tool. Visual, inspectable, shareable, auditable through n8n's execution history
 - **Flexible Providers** — Ollama, Groq, OpenRouter, or any OpenAI-compatible API. Speaches or Groq for STT. Kokoro or Piper for TTS
 - **Short-Term Memory** — Store and recall information across sessions

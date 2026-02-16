@@ -438,7 +438,7 @@ async def _discover_tools(agent) -> list[dict] | None:
 
     # Get MCP tools from all configured servers (except n8n and home_assistant)
     # n8n uses webhook-based workflow discovery, not direct MCP tools
-    # home_assistant uses wrapper tools (hass_control, hass_get_state) for simpler LLM interface
+    # home_assistant uses wrapper tool (hass) for simpler LLM interface
     if hasattr(agent, "_caal_mcp_servers") and agent._caal_mcp_servers:
         for server_name, server in agent._caal_mcp_servers.items():
             # Skip servers that use wrapper tools instead of raw MCP tools

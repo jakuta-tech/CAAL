@@ -51,6 +51,8 @@ from caal import CAALLLM  # noqa: E402
 from caal.integrations import (  # noqa: E402
     MemoryTools,
     WebSearchTools,
+    create_hass_tools,
+    detect_hass_tool_prefix,
     discover_n8n_workflows,
     initialize_mcp_servers,
     load_mcp_config,
@@ -199,166 +201,6 @@ def load_prompt(language: str = "en") -> str:
 
 # Type alias for tool status callback
 ToolStatusCallback = callable  # async (bool, list[str], list[dict]) -> None
-
-
-# =========================================================================
-# Home Assistant Wrapper Tools
-# =========================================================================
-# These provide a simplified interface to HASS MCP, matching the n8n
-# hass_control workflow signature for prompt compatibility.
-# Tools are only added when Home Assistant is connected.
-
-
-def create_hass_tools(hass_server: mcp.MCPServerHTTP) -> tuple[list[dict], dict]:
-    """Create Home Assistant tools bound to the given MCP server.
-
-    Returns:
-        tuple: (tool_definitions, tool_callables)
-        - tool_definitions: List of tool definitions in OpenAI format for LLM
-        - tool_callables: Dict mapping tool name to callable function
-    """
-    async def hass_control(action: str, target: str, value: int = None) -> str:
-        """Control Home Assistant devices.
-
-        Parameters: action (required: turn_on, turn_off, volume_up,
-        volume_down, set_volume, mute, unmute, pause, play, next,
-        previous), target (required: device name),
-        value (optional: for set_volume 0-100).
-        """
-        if not hass_server or not hasattr(hass_server, "_client"):
-            return "Home Assistant is not connected"
-
-        # Map action to HASS MCP tool and build arguments
-        action_map = {
-            "turn_on": ("HassTurnOn", {"name": target}),
-            "turn_off": ("HassTurnOff", {"name": target}),
-            "pause": ("HassMediaPause", {"name": target}),
-            "play": ("HassMediaUnpause", {"name": target}),
-            "next": ("HassMediaNext", {"name": target}),
-            "previous": ("HassMediaPrevious", {"name": target}),
-            "volume_up": ("HassSetVolumeRelative", {"name": target, "volume_step": "up"}),
-            "volume_down": ("HassSetVolumeRelative", {"name": target, "volume_step": "down"}),
-            "set_volume": ("HassSetVolume", {"name": target, "volume_level": value or 50}),
-            "mute": ("HassMediaPlayerMute", {"name": target}),
-            "unmute": ("HassMediaPlayerUnmute", {"name": target}),
-        }
-
-        if action not in action_map:
-            return f"Unknown action: {action}. Valid actions: {', '.join(action_map.keys())}"
-
-        tool_name, args = action_map[action]
-
-        try:
-            result = await hass_server._client.call_tool(tool_name, args)
-
-            # Check for errors
-            if result.isError:
-                error_texts = [c.text for c in result.content if hasattr(c, "text") and c.text]
-                return f"Error: {' '.join(error_texts)}"
-
-            # Extract success message
-            texts = [c.text for c in result.content if hasattr(c, "text") and c.text]
-            return " ".join(texts) if texts else f"Done: {action} {target}"
-
-        except Exception as e:
-            logger.error(f"hass_control error: {e}")
-            return f"Failed to {action} {target}: {e}"
-
-    async def hass_get_state(target: str = None) -> str:
-        """Get the current state of Home Assistant devices.
-        Parameters: target (optional: device name to filter, or omit for all devices).
-        """
-        if not hass_server or not hasattr(hass_server, "_client"):
-            return "Home Assistant is not connected"
-
-        try:
-            result = await hass_server._client.call_tool("GetLiveContext", {})
-
-            # Check for errors
-            if result.isError:
-                error_texts = [c.text for c in result.content if hasattr(c, "text") and c.text]
-                return f"Error: {' '.join(error_texts)}"
-
-            # Extract content
-            texts = [c.text for c in result.content if hasattr(c, "text") and c.text]
-            full_context = " ".join(texts) if texts else "No devices found"
-
-            # If target specified, filter to just that device
-            if target:
-                target_lower = target.lower()
-                # Simple filter: look for lines containing the target name
-                lines = full_context.split("\n")
-                filtered = []
-                capturing = False
-                for line in lines:
-                    if "names:" in line.lower() and target_lower in line.lower():
-                        capturing = True
-                    elif "names:" in line.lower() and capturing:
-                        capturing = False
-                    if capturing:
-                        filtered.append(line)
-                if filtered:
-                    return "\n".join(filtered)
-                return f"Device '{target}' not found"
-
-            return full_context
-
-        except Exception as e:
-            logger.error(f"hass_get_state error: {e}")
-            return f"Failed to get state: {e}"
-
-    # Tool definitions in OpenAI format for LLM
-    tool_definitions = [
-        {
-            "type": "function",
-            "function": {
-                "name": "hass_control",
-                "description": (
-                    "Control Home Assistant devices. "
-                    "Parameters: action (required: turn_on, turn_off, "
-                    "volume_up, volume_down, set_volume, mute, unmute, "
-                    "pause, play, next, previous), "
-                    "target (required: device name), "
-                    "value (optional: for set_volume 0-100)."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "action": {"type": "string"},
-                        "target": {"type": "string"},
-                        "value": {"type": "integer"},
-                    },
-                    "required": ["action", "target"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "hass_get_state",
-                "description": (
-                    "Get the current state of Home Assistant devices. "
-                    "Parameters: target (optional: device name to "
-                    "filter, or omit for all devices)."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target": {"type": "string"},
-                    },
-                    "required": [],
-                },
-            },
-        },
-    ]
-
-    # Callable functions for tool execution
-    tool_callables = {
-        "hass_control": hass_control,
-        "hass_get_state": hass_get_state,
-    }
-
-    return tool_definitions, tool_callables
 
 
 class VoiceAssistant(MemoryTools, WebSearchTools, Agent):
@@ -745,8 +587,14 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     hass_tool_callables = {}
     hass_server = mcp_servers.get("home_assistant")
     if hass_server:
-        hass_tool_definitions, hass_tool_callables = create_hass_tools(hass_server)
-        logger.info("Home Assistant tools enabled: hass_control, hass_get_state")
+        # Detect tool prefix (some HA MCP servers use 'assist__' prefix)
+        hass_tool_prefix = await detect_hass_tool_prefix(hass_server)
+        if hass_tool_prefix:
+            logger.info(f"Home Assistant MCP uses '{hass_tool_prefix}' prefix")
+        hass_tool_definitions, hass_tool_callables = create_hass_tools(
+            hass_server, tool_prefix=hass_tool_prefix
+        )
+        logger.info("Home Assistant tools enabled: hass")
 
     # Initialize short-term memory (singleton, persists across restarts)
     short_term_memory = ShortTermMemory()
