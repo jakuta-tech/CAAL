@@ -7,7 +7,7 @@ Features:
 - Automatic detection of MCP tool prefixes (assist__ vs bare names)
 - Device cache with domain information from GetLiveContext
 - Domain-specific intent mapping (cover -> HassOpenCover, not HassTurnOn)
-- Simplified hass_control/hass_get_state interface for LLM
+- Unified hass() tool interface for LLM (single tool, action-based)
 
 Usage:
     hass_server = mcp_servers.get("home_assistant")
@@ -19,7 +19,6 @@ Usage:
 from __future__ import annotations
 
 import logging
-import re
 import time
 from dataclasses import dataclass, field
 
@@ -290,18 +289,27 @@ def create_hass_tools(
         except Exception as e:
             logger.warning(f"Failed to refresh device cache: {e}")
 
-    async def hass_control(action: str, target: str, value: int = None) -> str:
-        """Control Home Assistant devices.
+    async def hass(action: str, target: str = None, value: int = None) -> str:
+        """Control Home Assistant devices or get their status.
 
         Parameters:
-            action: turn_on, turn_off, open, close, toggle, volume_up,
+            action: status, turn_on, turn_off, open, close, toggle, volume_up,
                    volume_down, set_volume, mute, unmute, pause, play,
                    next, previous, set_brightness, set_temperature, stop
-            target: Device name (e.g., "office lamp", "garage door")
+            target: Device name (e.g., "office lamp", "garage door").
+                   Optional for status (omit for all devices).
             value: For set_volume/set_brightness (0-100), set_temperature (degrees)
         """
         if not hass_server or not hasattr(hass_server, "_client"):
             return "Home Assistant is not connected"
+
+        # Handle status action (query device state)
+        if action == "status":
+            return await _get_status(target)
+
+        # All other actions require a target
+        if not target:
+            return f"Target device name is required for '{action}'"
 
         # Refresh device cache if stale
         await _refresh_device_cache()
@@ -322,7 +330,7 @@ def create_hass_tools(
         intent_name, extra_args = _resolve_intent(action, domain)
 
         if not intent_name:
-            valid_actions = sorted(set(a for a, _ in INTENT_MAP.keys()))
+            valid_actions = sorted(set(a for a, _ in INTENT_MAP.keys()) | {"status"})
             return f"Unknown action: {action}. Valid actions: {', '.join(valid_actions)}"
 
         # Build arguments
@@ -359,18 +367,11 @@ def create_hass_tools(
             return " ".join(texts) if texts else f"Done: {action} {target}"
 
         except Exception as e:
-            logger.error(f"hass_control error: {e}")
+            logger.error(f"hass error: {e}")
             return f"Failed to {action} {target}: {e}"
 
-    async def hass_get_state(target: str = None) -> str:
-        """Get the current state of Home Assistant devices.
-
-        Parameters:
-            target: Device name to filter (optional, omit for all devices)
-        """
-        if not hass_server or not hasattr(hass_server, "_client"):
-            return "Home Assistant is not connected"
-
+    async def _get_status(target: str = None) -> str:
+        """Get the current state of Home Assistant devices."""
         try:
             tool_name = _apply_prefix("GetLiveContext")
             result = await hass_server._client.call_tool(tool_name, {})
@@ -390,7 +391,6 @@ def create_hass_tools(
             # If target specified, filter to just that device
             if target:
                 target_lower = target.lower()
-                # Simple filter: look for lines containing the target name
                 lines = full_context.split("\n")
                 filtered = []
                 capturing = False
@@ -408,21 +408,21 @@ def create_hass_tools(
             return full_context
 
         except Exception as e:
-            logger.error(f"hass_get_state error: {e}")
-            return f"Failed to get state: {e}"
+            logger.error(f"hass status error: {e}")
+            return f"Failed to get status: {e}"
 
-    # Tool definitions in OpenAI format for LLM
+    # Tool definition in OpenAI format for LLM
     tool_definitions = [
         {
             "type": "function",
             "function": {
-                "name": "hass_control",
+                "name": "hass",
                 "description": (
-                    "Control Home Assistant devices. "
-                    "Parameters: action (required: turn_on, turn_off, open, close, "
+                    "Control Home Assistant devices or get their status. "
+                    "Parameters: action (required: status, turn_on, turn_off, open, close, "
                     "toggle, volume_up, volume_down, set_volume, mute, unmute, "
                     "pause, play, next, previous, set_brightness, set_temperature, stop), "
-                    "target (required: device name), "
+                    "target (device name, optional for status), "
                     "value (optional: for set_volume/set_brightness 0-100, "
                     "set_temperature in degrees)."
                 ),
@@ -433,34 +433,15 @@ def create_hass_tools(
                         "target": {"type": "string"},
                         "value": {"type": "integer"},
                     },
-                    "required": ["action", "target"],
-                },
-            },
-        },
-        {
-            "type": "function",
-            "function": {
-                "name": "hass_get_state",
-                "description": (
-                    "Get the current state of Home Assistant devices. "
-                    "Parameters: target (optional: device name to "
-                    "filter, or omit for all devices)."
-                ),
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "target": {"type": "string"},
-                    },
-                    "required": [],
+                    "required": ["action"],
                 },
             },
         },
     ]
 
-    # Callable functions for tool execution
+    # Callable function for tool execution
     tool_callables = {
-        "hass_control": hass_control,
-        "hass_get_state": hass_get_state,
+        "hass": hass,
     }
 
     return tool_definitions, tool_callables

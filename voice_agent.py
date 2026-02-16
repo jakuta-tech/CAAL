@@ -594,7 +594,7 @@ async def entrypoint(ctx: agents.JobContext) -> None:
         hass_tool_definitions, hass_tool_callables = create_hass_tools(
             hass_server, tool_prefix=hass_tool_prefix
         )
-        logger.info("Home Assistant tools enabled: hass_control, hass_get_state")
+        logger.info("Home Assistant tools enabled: hass")
 
     # Initialize short-term memory (singleton, persists across restarts)
     short_term_memory = ShortTermMemory()
