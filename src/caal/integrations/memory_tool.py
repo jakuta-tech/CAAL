@@ -29,36 +29,54 @@ MEMORY_SHORT_TOOL_DEF: dict = {
     "function": {
         "name": "memory_short",
         "description": (
-            "Store or retrieve information for later use in this "
-            "conversation. Use this to remember things the user tells "
-            "you like flight numbers, tracking codes, preferences, or "
-            "any data you'll need to reference later. IMPORTANT: Before "
-            "asking the user for information you've already discussed "
-            "(like a tracking number or flight), check memory first "
-            'with action="get" or action="list".'
+            "Short-term memory — store and recall "
+            "key-value pairs during a session.\n"
+            "\n"
+            "Actions:\n"
+            "  store — save a value.\n"
+            "  recall — retrieve a stored value.\n"
+            "  list — show all stored memories.\n"
+            "  delete — remove a stored value.\n"
+            "\n"
+            "Rules:\n"
+            "- Use descriptive key names "
+            "(e.g. flight, email, dentist).\n"
+            "- Default TTL is 7 days.\n"
+            "- If memory data is already in "
+            "context, use it directly without "
+            "calling recall."
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "action": {
                     "type": "string",
-                    "description": 'One of "store", "get", "delete", "list"',
+                    "description": (
+                        "One of: store, recall, "
+                        "list, delete"
+                    ),
                 },
                 "key": {
                     "type": "string",
-                    "description": "The key to store/get/delete",
+                    "description": (
+                        "Memory key name, e.g. "
+                        "flight, email, package. "
+                        "For: store, recall, delete"
+                    ),
                 },
                 "value": {
                     "type": "string",
                     "description": (
-                        "The value to store (only for store action)"
+                        "Value to store. "
+                        "For: store"
                     ),
                 },
                 "ttl": {
                     "type": "string",
                     "description": (
-                        'Optional expiry: "1h", "6h", "1d", "7d", '
-                        '"30d", "forever". Default 7 days.'
+                        "Expiry: 1h, 6h, 1d, 7d, "
+                        "30d, forever. Default 7d. "
+                        "For: store"
                     ),
                 },
             },
@@ -129,9 +147,9 @@ async def execute_memory_short(
         )
         return f"Stored: {key}"
 
-    elif action == "get":
+    elif action in ("get", "recall"):
         if not key:
-            return "Key is required for get action"
+            return "Key is required for recall action"
 
         result = memory.get(key)
         if result is None:
@@ -161,7 +179,7 @@ async def execute_memory_short(
     else:
         return (
             f"Unknown action: {action}. "
-            "Valid actions: store, get, delete, list"
+            "Valid actions: store, recall, delete, list"
         )
 
 
@@ -187,11 +205,11 @@ class MemoryTools:
 
         IMPORTANT: Before asking the user for information you've already
         discussed (like a tracking number or flight), check memory first
-        with action="get" or action="list".
+        with action="recall" or action="list".
 
         Args:
-            action: One of "store", "get", "delete", "list"
-            key: The key to store/get/delete (e.g., "flight_number", "tracking_code")
+            action: One of "store", "recall", "delete", "list"
+            key: The key to store/recall/delete (e.g., "flight_number", "tracking_code")
             value: The value to store (only required for action="store")
             ttl: Optional expiry for store action. Examples: "1h", "6h", "1d",
                 "7d", "30d", "forever". Default is 7 days if not specified.

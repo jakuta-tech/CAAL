@@ -37,15 +37,30 @@ WEB_SEARCH_TOOL_DEF: dict = {
     "function": {
         "name": "web_search",
         "description": (
-            "Search the web for current events, news, prices, hours, "
-            "or time-sensitive info."
+            "Web search — search the internet. "
+            "Use ONLY when no other tool covers "
+            "the request. Other tools are always "
+            "preferred: use espn for sports, "
+            "weather for weather, youtube for "
+            "YouTube, etc.\n"
+            "\n"
+            "Use web_search for:\n"
+            "- news and current events\n"
+            "- prices\n"
+            "- general questions needing "
+            "up-to-date answers\n"
+            "- topics not covered by any tool"
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "What to search for on the web.",
+                    "description": (
+                        "Search terms, e.g. "
+                        "bitcoin price, "
+                        "who won the super bowl"
+                    ),
                 },
             },
             "required": ["query"],

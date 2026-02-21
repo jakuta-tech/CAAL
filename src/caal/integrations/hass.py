@@ -293,12 +293,12 @@ def create_hass_tools(
         """Control Home Assistant devices or get their status.
 
         Parameters:
-            action: status, turn_on, turn_off, open, close, toggle, volume_up,
-                   volume_down, set_volume, mute, unmute, pause, play,
-                   next, previous, set_brightness, set_temperature, stop
-            target: Device name (e.g., "office lamp", "garage door").
+            action: status, turn_on, turn_off, toggle, open, close, stop,
+                   set_brightness, set_temperature, set_volume, volume_up,
+                   volume_down, mute, unmute, pause, play, next, previous
+            target: Device name in plain English (e.g., "office lamp").
                    Optional for status (omit for all devices).
-            value: For set_volume/set_brightness (0-100), set_temperature (degrees)
+            value: brightness 0-100 (%), temperature in degrees, volume 0-100
         """
         if not hass_server or not hasattr(hass_server, "_client"):
             return "Home Assistant is not connected"
@@ -347,7 +347,8 @@ def create_hass_tools(
         if action == "set_volume" and value is not None:
             args["volume_level"] = value
         elif action == "set_brightness" and value is not None:
-            args["brightness"] = value
+            # Scale 0-100 percentage to HASS 0-255 range
+            args["brightness"] = round(value * 255 / 100)
         elif action == "set_temperature" and value is not None:
             args["temperature"] = value
 
@@ -418,22 +419,62 @@ def create_hass_tools(
             "function": {
                 "name": "hass",
                 "description": (
-                    "Control Home Assistant devices or get their status. "
-                    "Parameters: action (required: status, turn_on, turn_off, open, close, "
-                    "toggle, volume_up, volume_down, set_volume, mute, unmute, "
-                    "pause, play, next, previous, set_brightness, set_temperature, stop), "
-                    "target (device name, optional for status), "
-                    "value (optional: for set_volume/set_brightness 0-100, "
-                    "set_temperature in degrees)."
+                    "Home Assistant — control smart home "
+                    "devices or check their status.\n"
+                    "\n"
+                    "Action routing:\n"
+                    "  status — check device state.\n"
+                    "  turn_on / turn_off / toggle — "
+                    "power control.\n"
+                    "  open / close / stop — covers, "
+                    "blinds, garage.\n"
+                    "  set_brightness — light level "
+                    "0-100%.\n"
+                    "  set_temperature — thermostat.\n"
+                    "  set_volume — media volume 0-100.\n"
+                    "  volume_up / volume_down — "
+                    "relative volume.\n"
+                    "  mute / unmute — mute toggle.\n"
+                    "  pause / play / next / previous — "
+                    "playback control.\n"
+                    "\n"
+                    "Rules:\n"
+                    "- target is the device name in "
+                    "plain English.\n"
+                    "- value is an integer: brightness "
+                    "0-100, temp in degrees, volume 0-100."
                 ),
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "action": {"type": "string"},
-                        "target": {"type": "string"},
-                        "value": {"type": "integer"},
+                        "action": {
+                            "type": "string",
+                            "description": (
+                                "One of: status, turn_on, "
+                                "turn_off, toggle, open, "
+                                "close, stop, set_brightness,"
+                                " set_temperature, set_volume"
+                                ", volume_up, volume_down, "
+                                "mute, unmute, pause, play, "
+                                "next, previous"
+                            ),
+                        },
+                        "target": {
+                            "type": "string",
+                            "description": (
+                                "Device name, e.g. "
+                                "office lamp, garage door"
+                            ),
+                        },
+                        "value": {
+                            "type": "integer",
+                            "description": (
+                                "brightness 0-100, temp "
+                                "in degrees, volume 0-100"
+                            ),
+                        },
                     },
-                    "required": ["action"],
+                    "required": ["action", "target"],
                 },
             },
         },
