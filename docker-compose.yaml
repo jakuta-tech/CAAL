@@ -34,7 +34,8 @@ services:
       - "7880:7880"       # WebSocket
       - "7881:7881"       # TCP for WebRTC
       - "7881:7881/udp"   # UDP for WebRTC
-      - "5349:5349"       # TURN/TLS (only used in Tailscale mode)
+      - "${TURN_TLS_PORT:-443}:${TURN_TLS_PORT:-443}"  # TURN/TLS (only used in Tailscale mode)
+      - "3478:3478/udp"   # TURN/UDP (only used in Tailscale mode)
       - "30000-30100:30000-30100/udp"  # TURN relay ports
       - "51000-51100:51000-51100/udp"  # WebRTC media ports (changed from 50000 to avoid Chrome conflicts)
     volumes:
@@ -44,6 +45,7 @@ services:
     environment:
       - HTTPS_DOMAIN=${HTTPS_DOMAIN:-}
       - CAAL_HOST_IP=${CAAL_HOST_IP}
+      - TURN_TLS_PORT=${TURN_TLS_PORT:-443}
     networks:
       - caal-network
     restart: unless-stopped
