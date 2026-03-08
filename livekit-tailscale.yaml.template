@@ -13,7 +13,7 @@ rtc:
 turn:
   enabled: true
   domain: ${HTTPS_DOMAIN}
-  tls_port: 443
+  tls_port: ${TURN_TLS_PORT}
   udp_port: 3478
   cert_file: /etc/livekit/certs/server.crt
   key_file: /etc/livekit/certs/server.key
