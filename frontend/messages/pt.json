@@ -13,6 +13,8 @@
     "disabled": "Desativado",
     "settings": "Configurações",
     "tools": "Ferramentas",
+    "delete": "Excluir",
+    "memory": "Memória",
     "connected": "Conectado"
   },
   "Welcome": {
@@ -266,6 +268,37 @@
       "n8nWorkflowLabel": "Workflow n8n",
       "unpublishedInfo": "Esta ferramenta personalizada não está publicada no registro de ferramentas CAAL. Compartilhe para ajudar outros a descobrir e usar esta ferramenta. Todas as chaves, IDs e URLs privadas serão removidas automaticamente.",
       "shareButton": "Compartilhar no registro"
+    }
+  },
+  "Memory": {
+    "panel": {
+      "title": "Memória",
+      "subtitle": "{count} entradas armazenadas",
+      "emptyState": "Nenhuma memória armazenada",
+      "emptyHint": "Memórias são criadas quando ferramentas retornam dados ou quando você me pede para lembrar algo",
+      "clearAll": "Limpar tudo",
+      "addEntry": "Adicionar entrada"
+    },
+    "confirmClearAll": "Limpar todas as entradas de memória?",
+    "create": {
+      "title": "Adicionar entrada de memória",
+      "key": "Chave",
+      "keyPlaceholder": "ex. preferência_usuário",
+      "valuePlaceholder": "ex. gosta de jazz",
+      "save": "Adicionar"
+    },
+    "detail": {
+      "value": "Valor",
+      "storedAt": "Armazenado",
+      "expiresAt": "Expira",
+      "noExpiry": "Sem expiração",
+      "source": "Fonte",
+      "sources": {
+        "tool_hint": "Armazenado automaticamente pela ferramenta",
+        "explicit": "Armazenado por solicitação",
+        "api": "Armazenado via API",
+        "ui": "Adicionado pela interface"
+      }
     }
   },
   "Setup": {

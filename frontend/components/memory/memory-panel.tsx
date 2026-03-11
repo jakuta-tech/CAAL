@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
-import { Brain, Clock, FloppyDisk, Trash, X } from '@phosphor-icons/react/dist/ssr';
+import { Brain, Clock, FloppyDisk, Plus, Trash, X } from '@phosphor-icons/react/dist/ssr';
 import { Button } from '@/components/livekit/button';
 
 interface MemoryEntry {
@@ -11,7 +11,7 @@ interface MemoryEntry {
   value: unknown;
   stored_at: number;
   expires_at: number | null;
-  source: 'tool_hint' | 'explicit' | 'api';
+  source: 'tool_hint' | 'explicit' | 'api' | 'ui';
 }
 
 interface MemoryPanelProps {
@@ -78,12 +78,14 @@ function SourceBadge({ source }: { source: string }) {
     tool_hint: 'bg-blue-500/20 text-blue-400',
     explicit: 'bg-green-500/20 text-green-400',
     api: 'bg-purple-500/20 text-purple-400',
+    ui: 'bg-amber-500/20 text-amber-400',
   };
 
   const labels: Record<string, string> = {
     tool_hint: 'tool',
     explicit: 'voice',
     api: 'api',
+    ui: 'ui',
   };
 
   return (
@@ -102,6 +104,8 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
   const [entries, setEntries] = useState<MemoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState<MemoryEntry | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createKey, setCreateKey] = useState('');
   const [originalValue, setOriginalValue] = useState('');
   const [editValue, setEditValue] = useState('');
   const [originalTtl, setOriginalTtl] = useState('');
@@ -179,6 +183,37 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
     }
   };
 
+  const handleStartCreate = () => {
+    setIsCreating(true);
+    setCreateKey('');
+    setEditValue('');
+    setEditTtl('7d');
+    setSelectedEntry(null);
+  };
+
+  const handleSaveCreate = async () => {
+    if (!createKey.trim()) return;
+
+    try {
+      const res = await fetch('/api/memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: createKey.trim(),
+          value: editValue,
+          source: 'ui',
+          ttl_seconds: TTL_OPTIONS[editTtl],
+        }),
+      });
+      if (res.ok) {
+        setIsCreating(false);
+        fetchMemory();
+      }
+    } catch (err) {
+      console.error('Failed to create memory entry:', err);
+    }
+  };
+
   if (!isOpen) return null;
 
   return createPortal(
@@ -209,12 +244,21 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 transition-colors"
-            >
-              <X className="h-6 w-6" weight="bold" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleStartCreate}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 transition-colors"
+                title={t('panel.addEntry')}
+              >
+                <Plus className="h-5 w-5" weight="bold" />
+              </button>
+              <button
+                onClick={onClose}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 transition-colors"
+              >
+                <X className="h-6 w-6" weight="bold" />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -378,6 +422,81 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
                   {tCommon('delete')}
                 </Button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Create modal */}
+      {isCreating && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setIsCreating(false)} />
+          <div
+            className="panel-elevated relative mx-4 max-h-[80vh] w-full max-w-lg overflow-auto rounded-xl p-6"
+            style={{ border: '1px solid var(--border-subtle)' }}
+          >
+            <button
+              onClick={() => setIsCreating(false)}
+              className="text-muted-foreground hover:text-foreground absolute top-4 right-4 p-1"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <h2 className="mb-4 text-lg font-bold">{t('create.title')}</h2>
+
+            <div className="mb-4">
+              <label className="text-muted-foreground mb-1 block text-xs uppercase">
+                {t('create.key')}
+              </label>
+              <input
+                type="text"
+                value={createKey}
+                onChange={(e) => setCreateKey(e.target.value)}
+                placeholder={t('create.keyPlaceholder')}
+                className="bg-muted w-full rounded-lg border p-3 font-mono text-sm"
+                style={{ borderColor: 'var(--border-subtle)' }}
+                autoFocus
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="text-muted-foreground mb-1 block text-xs uppercase">
+                {t('detail.value')}
+              </label>
+              <input
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                placeholder={t('create.valuePlaceholder')}
+                className="bg-muted w-full rounded-lg border p-3 font-mono text-sm"
+                style={{ borderColor: 'var(--border-subtle)' }}
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="text-muted-foreground mb-1 block text-xs uppercase">TTL</label>
+              <select
+                value={editTtl}
+                onChange={(e) => setEditTtl(e.target.value)}
+                className="bg-muted rounded-lg border px-3 py-2 text-sm"
+                style={{ borderColor: 'var(--border-subtle)' }}
+              >
+                <option value="1h">1 hour</option>
+                <option value="6h">6 hours</option>
+                <option value="1d">1 day</option>
+                <option value="7d">7 days</option>
+                <option value="30d">30 days</option>
+                <option value="never">{t('detail.noExpiry')}</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setIsCreating(false)}>
+                {tCommon('cancel')}
+              </Button>
+              <Button variant="primary" onClick={handleSaveCreate} disabled={!createKey.trim()}>
+                <Plus className="h-4 w-4" />
+                {t('create.save')}
+              </Button>
             </div>
           </div>
         </div>

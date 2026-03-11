@@ -276,9 +276,17 @@
       "subtitle": "{count} entries stored",
       "emptyState": "No memories stored",
       "emptyHint": "Memories are created when tools return data or when you ask me to remember something",
-      "clearAll": "Clear All"
+      "clearAll": "Clear All",
+      "addEntry": "Add entry"
     },
     "confirmClearAll": "Clear all memory entries?",
+    "create": {
+      "title": "Add Memory Entry",
+      "key": "Key",
+      "keyPlaceholder": "e.g. user_preference",
+      "valuePlaceholder": "e.g. likes jazz",
+      "save": "Add Entry"
+    },
     "detail": {
       "value": "Value",
       "storedAt": "Stored",
@@ -288,7 +296,8 @@
       "sources": {
         "tool_hint": "Auto-stored from tool",
         "explicit": "Stored by request",
-        "api": "Stored via API"
+        "api": "Stored via API",
+        "ui": "Added from UI"
       }
     }
   },

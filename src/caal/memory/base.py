@@ -22,7 +22,7 @@ MEMORY_DIR = Path(os.getenv("CAAL_MEMORY_DIR", _SCRIPT_DIR))
 DEFAULT_TTL_SECONDS = 604800
 
 # Source types for tracking where memory entries came from
-MemorySource = Literal["tool_hint", "explicit", "api"]
+MemorySource = Literal["tool_hint", "explicit", "api", "ui"]
 
 
 class MemoryEntry(TypedDict):
@@ -32,7 +32,7 @@ class MemoryEntry(TypedDict):
         value: The stored data (any JSON-serializable type)
         stored_at: Unix timestamp when entry was created
         expires_at: Unix timestamp for expiry, or None for no expiry
-        source: How the entry was created (tool_hint, explicit, api)
+        source: How the entry was created (tool_hint, explicit, api, ui)
     """
 
     value: Any
