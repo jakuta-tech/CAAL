@@ -276,9 +276,17 @@
       "subtitle": "{count} voci memorizzate",
       "emptyState": "Nessuna memoria memorizzata",
       "emptyHint": "Le memorie vengono create quando gli strumenti restituiscono dati o quando mi chiedi di ricordare qualcosa",
-      "clearAll": "Cancella tutto"
+      "clearAll": "Cancella tutto",
+      "addEntry": "Aggiungi voce"
     },
     "confirmClearAll": "Cancellare tutte le voci di memoria?",
+    "create": {
+      "title": "Aggiungi voce di memoria",
+      "key": "Chiave",
+      "keyPlaceholder": "es. preferenza_utente",
+      "valuePlaceholder": "es. ama il jazz",
+      "save": "Aggiungi"
+    },
     "detail": {
       "value": "Valore",
       "storedAt": "Memorizzato",
@@ -288,7 +296,8 @@
       "sources": {
         "tool_hint": "Memorizzato automaticamente dallo strumento",
         "explicit": "Memorizzato su richiesta",
-        "api": "Memorizzato tramite API"
+        "api": "Memorizzato tramite API",
+        "ui": "Aggiunto dall'interfaccia"
       }
     }
   },

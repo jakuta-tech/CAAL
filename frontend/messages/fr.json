@@ -276,9 +276,17 @@
       "subtitle": "{count} entrées stockées",
       "emptyState": "Aucune mémoire stockée",
       "emptyHint": "Les mémoires sont créées lorsque les outils renvoient des données ou lorsque vous me demandez de mémoriser quelque chose",
-      "clearAll": "Tout effacer"
+      "clearAll": "Tout effacer",
+      "addEntry": "Ajouter une entrée"
     },
     "confirmClearAll": "Effacer toutes les entrées de mémoire ?",
+    "create": {
+      "title": "Ajouter une entrée mémoire",
+      "key": "Clé",
+      "keyPlaceholder": "ex. préférence_utilisateur",
+      "valuePlaceholder": "ex. aime le jazz",
+      "save": "Ajouter"
+    },
     "detail": {
       "value": "Valeur",
       "storedAt": "Stocké",
@@ -288,7 +296,8 @@
       "sources": {
         "tool_hint": "Stocké automatiquement par l'outil",
         "explicit": "Stocké sur demande",
-        "api": "Stocké via API"
+        "api": "Stocké via API",
+        "ui": "Ajouté depuis l'interface"
       }
     }
   },
