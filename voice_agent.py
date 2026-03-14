@@ -108,7 +108,6 @@ TIMEZONE_DISPLAY = os.getenv("TIMEZONE_DISPLAY", "Pacific Time")
 
 # Import settings module for runtime-configurable values
 from caal import settings as settings_module  # noqa: E402
-from caal.settings import PIPER_VOICE_MAP  # noqa: E402
 
 
 def get_wake_greetings(language: str) -> list[str]:
@@ -366,8 +365,7 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     else:
         logger.info(f"  STT: {SPEACHES_URL} ({WHISPER_MODEL}, lang={language})")
     if runtime["tts_provider"] == "piper":
-        actual_piper_voice = PIPER_VOICE_MAP.get(language, PIPER_VOICE_MAP["en"])
-        logger.info(f"  TTS: Piper ({actual_piper_voice})")
+        logger.info(f"  TTS: Piper ({runtime['tts_voice_piper']})")
     else:
         logger.info(f"  TTS: Kokoro ({runtime['tts_voice_kokoro']})")
     llm_provider = runtime["llm_provider"]
@@ -500,8 +498,7 @@ async def entrypoint(ctx: agents.JobContext) -> None:
             )
 
     if tts_provider == "piper":
-        # Select Piper voice based on language, fall back to English
-        piper_voice = PIPER_VOICE_MAP.get(language, PIPER_VOICE_MAP["en"])
+        piper_voice = runtime["tts_voice_piper"]
         tts_instance = openai.TTS(
             base_url=f"{PIPER_URL}/v1",
             api_key="not-needed",
